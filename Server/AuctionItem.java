@@ -1,38 +1,44 @@
-import java.io.Serializable;
-import java.rmi.RemoteException;
-
-class AuctionItem implements Serializable {
+public class AuctionItem implements java.io.Serializable {
 
     private int itemId;
     private String itemTitle;
     private String itemDescription;
     private int itemCondition;
+    private boolean auctionClosed = false;
 
-    public AuctionItem(int itemId, String itemTitle, String itemDescription, int itemCondition)
-            throws RemoteException {
+    public AuctionItem(int itemId, String itemTitle, String itemDescription, int itemCondition) {
         this.itemId = itemId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
         this.itemCondition = itemCondition;
     }
 
-    public int getItemId() throws RemoteException {
+    public int getItemId() {
         return itemId;
     }
 
-    public String getItemTitle() throws RemoteException {
+    public String getItemTitle() {
         return itemTitle;
     }
 
-    public String getItemDescription() throws RemoteException {
+    public String getItemDescription() {
         return itemDescription;
     }
 
-    public int getItemCondition() throws RemoteException {
+    public int getItemCondition() {
         return itemCondition;
     }
 
-    public void printSummary() throws RemoteException {
+    public boolean closeAuction() {
+        try {
+            auctionClosed = true;
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void printSummary() {
         System.out.println("{ itemId : " + itemId + " },");
         System.out.println("{ itemTitle : '" + itemTitle + "'' },");
         System.out.println("{ itemDescription : '" + itemDescription + "' },");
