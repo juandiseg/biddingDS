@@ -7,9 +7,9 @@ public class BuyerClient {
             System.out.println("Usage: java Client n");
             return;
         }
-        String name = "my_server";
+        String name = "buyer_server";
         Registry registry = LocateRegistry.getRegistry();
-        iUser server = (iUser) registry.lookup(name);
+        iBuyer server = (iBuyer) registry.lookup(name);
 
         String command = args[0];
 

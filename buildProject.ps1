@@ -2,8 +2,8 @@ rm */*.class
 
 cd .\Server\
 javac *.java
-cp .\iUser.class ..\SellerClient\
-cp .\iUser.class ..\BuyerClient\
+cp .\iSeller.class ..\SellerClient\
+cp .\iBuyer.class ..\BuyerClient\
 cp .\AuctionItem.class ..\SellerClient\
 cp .\AuctionItem.class ..\BuyerClient\
 

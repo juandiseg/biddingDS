@@ -23,6 +23,14 @@ public class Auction {
         return auctionID;
     }
 
+    public float getReservePrice() {
+        return reservePrice;
+    }
+
+    public int getNumberOfBids() {
+        return listBids.size();
+    }
+
     public int getSellerID() {
         return sellerID;
     }

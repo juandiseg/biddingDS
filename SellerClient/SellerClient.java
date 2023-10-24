@@ -7,9 +7,9 @@ public class SellerClient {
             System.out.println("Usage: java Client n");
             return;
         }
-        String name = "my_server";
+        String name = "seller_server";
         Registry registry = LocateRegistry.getRegistry();
-        iUser server = (iUser) registry.lookup(name);
+        iSeller server = (iSeller) registry.lookup(name);
 
         String command = args[0];
 
@@ -18,6 +18,8 @@ public class SellerClient {
             AuctionItem result = server.getSpec(itemID, 1);
             if (result != null)
                 result.printSummary();
+            else
+                System.out.println("The ID for the given item doesn't exist.");
         } else if (command.equals("ADD")) {
             int sellerID = Integer.parseInt(args[1]);
             String title = args[2];
@@ -32,7 +34,10 @@ public class SellerClient {
             int userID = Integer.parseInt(args[1]);
             int auctionID = Integer.parseInt(args[2]);
             System.out.println(server.closeAuction(userID, auctionID));
+        } else if (command.equals("CHECK")) {
+            int userID = Integer.parseInt(args[1]);
+            int auctionID = Integer.parseInt(args[2]);
+            System.out.println(server.checkAuctionStatus(userID, auctionID));
         }
-
     }
 }
