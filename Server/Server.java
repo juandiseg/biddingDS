@@ -1,9 +1,9 @@
-import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
+import java.rmi.RemoteException;
 
-public class Server implements ICalc {
+public class Server implements iUser {
 
     public Server() {
         super();
@@ -11,10 +11,10 @@ public class Server implements ICalc {
 
     public static void main(String[] args) {
         try {
-            Server s = new Server();
-            ICalc stub = (ICalc) UnicastRemoteObject.exportObject(s, 0);
+            Server server = new Server();
+            iUser userStub = (iUser) UnicastRemoteObject.exportObject(server, 0);
             Registry registry = LocateRegistry.getRegistry();
-            registry.rebind("myserver", stub);
+            registry.rebind("my_server", userStub);
             System.out.println("Server ready");
         } catch (Exception e) {
             System.err.println("Exception:");
@@ -31,17 +31,32 @@ public class Server implements ICalc {
     }
 
     @Override
-    public int createListing(String itemTitle, String itemDescription, int itemCondition, Float startingPrice,
-            Float acceptablePrice) throws RemoteException {
+    public int createAuction(int sellerID, String itemTitle, String itemDescription, int itemCondition,
+            Float startingPrice, Float acceptablePrice) throws RemoteException {
         int auctionID = AuctionManager.generateAuctionID();
-        AuctionManager.addAuction(new Auction(auctionID,
+        AuctionManager.addAuction(new Auction(sellerID, auctionID,
                 new AuctionItem(AuctionManager.generateItemID(), itemTitle, itemDescription, itemCondition),
                 startingPrice, acceptablePrice));
         return auctionID;
     }
 
     @Override
-    public float bid(int userID, int auctionID, float bidAmount) throws RemoteException {
-        return AuctionManager.bid(userID, auctionID, bidAmount);
+    public float bid(int auctionID, String username, String email, float bidAmount) throws RemoteException {
+        return AuctionManager.bid(auctionID, username, email, bidAmount);
+    }
+
+    @Override
+    public String checkAuctionStatus(int userID, int auctionID) throws RemoteException {
+        return "Auction going fine";
+    }
+
+    @Override
+    public String closeAuction(int userID, int auctionID) throws RemoteException {
+        return AuctionManager.closeAuction(userID, auctionID);
+    }
+
+    @Override
+    public String displayAuctions() throws RemoteException {
+        return AuctionManager.getDisplayString();
     }
 }

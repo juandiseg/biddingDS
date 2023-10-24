@@ -4,7 +4,6 @@ public class AuctionItem implements java.io.Serializable {
     private String itemTitle;
     private String itemDescription;
     private int itemCondition;
-    private boolean auctionClosed = false;
 
     public AuctionItem(int itemId, String itemTitle, String itemDescription, int itemCondition) {
         this.itemId = itemId;
@@ -25,23 +24,7 @@ public class AuctionItem implements java.io.Serializable {
         return itemDescription;
     }
 
-    public int getItemCondition() {
-        return itemCondition;
-    }
-
-    public boolean closeAuction() {
-        try {
-            auctionClosed = true;
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    public void printSummary() {
-        System.out.println("{ itemId : " + itemId + " },");
-        System.out.println("{ itemTitle : '" + itemTitle + "'' },");
-        System.out.println("{ itemDescription : '" + itemDescription + "' },");
+    public String getItemCondition() {
         String condition = "New";
         if (itemCondition == 1)
             condition = "Like new";
@@ -51,7 +34,15 @@ public class AuctionItem implements java.io.Serializable {
             condition = "Has signs of use";
         if (itemCondition == 4)
             condition = "Broken";
-        System.out.println("{ itemCondition : '" + condition + "' }");
+        return condition;
+    }
+
+    // Debugging purposes.
+    public void printSummary() {
+        System.out.println("{ itemId : " + itemId + " },");
+        System.out.println("{ itemTitle : '" + itemTitle + "'' },");
+        System.out.println("{ itemDescription : '" + itemDescription + "' },");
+        System.out.println("{ itemCondition : '" + getItemCondition() + "' }");
     }
 
 }
