@@ -1,6 +1,7 @@
+
 public class AuctionItem implements java.io.Serializable {
 
-    private final int sellerID;
+    private final String sellerUsername;
     private boolean auctionClosed = false;
     private int itemId;
     private String itemTitle;
@@ -8,13 +9,17 @@ public class AuctionItem implements java.io.Serializable {
     private int itemCondition;
     private double sellingPrice;
 
-    public AuctionItem(int sellerID, int itemId, String itemTitle, String itemDescription, int itemCondition,
+    public AuctionItem(String sellerUsername, int itemId, String itemTitle, String itemDescription, int itemCondition,
             double sellingPrice) {
-        this.sellerID = sellerID;
+        this.sellerUsername = sellerUsername;
         this.itemId = itemId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
-        this.itemCondition = itemCondition;
+        if (itemCondition < 1 || itemCondition > 5) {
+            this.itemCondition = -1;
+        } else {
+            this.itemCondition = itemCondition;
+        }
         this.sellingPrice = sellingPrice;
     }
 
@@ -23,7 +28,7 @@ public class AuctionItem implements java.io.Serializable {
     }
 
     public void closeAuction() {
-        auctionClosed = false;
+        auctionClosed = true;
     }
 
     public boolean isAuctionClosed() {
@@ -42,29 +47,29 @@ public class AuctionItem implements java.io.Serializable {
         return itemDescription;
     }
 
-    public int getSellerID() {
-        return sellerID;
+    public String getSellerUsername() {
+        return sellerUsername;
     }
 
     public String getItemCondition() {
-        String condition = "New";
-        if (itemCondition == 1)
-            condition = "Like new";
         if (itemCondition == 2)
-            condition = "In good state";
+            return "Like new";
         if (itemCondition == 3)
-            condition = "Has signs of use";
+            return "In good state";
         if (itemCondition == 4)
-            condition = "Broken";
-        return condition;
+            return "Has signs of use";
+        if (itemCondition == 5)
+            return "Broken";
+        if (itemCondition == -1)
+            return "Unknown";
+        return "New";
     }
 
-    // Debugging purposes.
-    public void printSummary() {
-        System.out.println("{ itemId : " + itemId + " },");
-        System.out.println("{ itemTitle : '" + itemTitle + "'' },");
-        System.out.println("{ itemDescription : '" + itemDescription + "' },");
-        System.out.println("{ itemCondition : '" + getItemCondition() + "' }");
+    public void printSummary(int auctionID) {
+        System.out.println("This item is being sold on the Auction #" + auctionID);
+        System.out.println("\tItem's ID : " + itemId);
+        System.out.println("\tItem's Title : " + itemTitle);
+        System.out.println("\tItem's Description : " + itemDescription);
+        System.out.println("\tItem's Condition : " + getItemCondition());
     }
-
 }

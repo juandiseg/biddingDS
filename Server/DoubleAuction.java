@@ -1,18 +1,17 @@
+
 import java.util.LinkedList;
 
 public class DoubleAuction {
     private final int doubleAuctionID;
-    private LinkedList<bids> listBids;
+    private final int itemID;
+    private LinkedList<Bids> listBids;
     private LinkedList<AuctionItem> listItems;
     private boolean auctionClosed = false;
 
-    final static Double WINNING_BID = -1.0;
-    final static Double ALREADY_WINNING_BID = -2.0;
-    final static Double INSUFFICIENT_BID = -3.0;
-
-    public DoubleAuction(int doubleAuctionID) {
+    public DoubleAuction(int itemID, int doubleAuctionID) {
         this.doubleAuctionID = doubleAuctionID;
-        listBids = new LinkedList<bids>();
+        this.itemID = itemID;
+        listBids = new LinkedList<Bids>();
         listItems = new LinkedList<AuctionItem>();
     }
 
@@ -27,35 +26,43 @@ public class DoubleAuction {
         return auctionClosed;
     }
 
+    public boolean isSellerAuctioning(String sellerUsername) {
+        return listItems.stream().anyMatch(item -> item.getSellerUsername().equals(sellerUsername));
+    }
+
     public int getNumberOfBids() {
         return listBids.size();
     }
 
-    public String closeAuction() {
-        if (isAuctionClosed())
-            return "The auction is already closed";
-        // match highest bid with lowest demanding and so on.
-        return "";
+    public int getNumberOfSellers() {
+        return listItems.size();
     }
 
-    public boolean bid(String username, String email, Double bidAmount) {
+    public int getItemID() {
+        return this.itemID;
+    }
+
+    public String closeAuction(String username) {
+        listItems.stream().filter(item -> (item.getSellerUsername().equals(username)))
+                .forEach(item -> item.closeAuction());
         if (isAuctionClosed()) {
-            return false;
+            // fullyClosedAuction();
+            return "The auction is closed, you can check the results using ADD COMMAND HERE";
         }
-        listBids.add(new bids(username, email, bidAmount));
+        return "There are other sellers who haven't yet agreed to close the auction.";
+    }
+
+    public boolean addAuction(AuctionItem auctionItem) {
+        listItems.add(auctionItem);
         return true;
     }
 
-    private class bids {
-        public String username;
-        public String email;
-        public Double bidAmount;
-
-        public bids(String username, String email, Double bidAmount) {
-            this.username = username;
-            this.email = email;
-            this.bidAmount = bidAmount;
+    public boolean bid(User user, Double bidAmount) {
+        if (isAuctionClosed()) {
+            return false;
         }
+        listBids.add(new Bids(user, bidAmount));
+        return true;
     }
 
 }

@@ -1,53 +1,57 @@
+
 import java.util.HashMap;
 
-public class userManager {
-    private static HashMap<String, user> users = new HashMap<>();
+public class UserManager {
+    private static HashMap<String, User> users = new HashMap<>();
 
-    public static int addUser(String username, String password, String userType) {
-        user temp = new user(username, password, userType);
+    public static User addUser(String username, String email, String password, char userType) {
+        User temp = new User(username, email, password, userType);
+        if (emailTaken(email) || users.get(username) != null) {
+            return null;
+        }
         users.put(username, temp);
-        return temp.getUserID();
+        return temp;
     }
 
-    public static String validateUser(String username, String password) {
-        user temp = users.get(username);
-        if (temp.getPassword().equals(password)) {
+    private static boolean emailTaken(String email) {
+        for (String tempKey : users.keySet()) {
+            if (users.get(tempKey).getEmail().equals(email)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static User getUser(String username) {
+        return users.get(username);
+    }
+
+    public static boolean usernamePresent(String username) {
+        return users.get(username) != null;
+    }
+
+    public static char validateUserByUsername(String username, String password) {
+        User temp = users.get(username);
+        if (temp != null && temp.getPassword().equals(password)) {
             return temp.getUserType();
         }
-        return "ERR";
+        return 'E';
     }
 
-}
-
-class user {
-    private static int lastID = 0;
-    private final int userID;
-    private final String username;
-    private String password;
-    private String userType;
-
-    public user(String username, String password, String userType) {
-        user.lastID++;
-        this.userID = user.lastID;
-        this.username = username;
-        this.password = password;
-        this.userType = userType;
+    public static boolean validateUser(User user, char type) {
+        User temp = users.get(user.getUsername());
+        return user.equals(temp) && user.getUserType() == type;
     }
 
-    public int getUserID() {
-        return this.userID;
-    }
-
-    public String getUsername() {
-        return this.username;
-    }
-
-    public String getPassword() {
-        return this.password;
-    }
-
-    public String getUserType() {
-        return this.userType;
+    public static char validateUserByEmail(String email, String password) {
+        User tempUser = null;
+        for (String tempKey : users.keySet()) {
+            tempUser = users.get(tempKey);
+            if (tempUser.getEmail().equals(email) && tempUser.getPassword().equals(password)) {
+                return tempUser.getUserType();
+            }
+        }
+        return 'E';
     }
 
 }

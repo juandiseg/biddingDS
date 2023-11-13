@@ -8,7 +8,7 @@ RESERVE PRICE - BARE MINIMUM AT WHICH THE SELLER CAN DECIDE TO CLOSE THE AUCTION
 Possibly viable bids. Up to the seller to take them.
 
 ----------------------------------------------------------------------------------------------------------------
-STARTING PRICE - IF THIS PRICE IS REACHED THE AUCTION WILL BE CLOSED REGARDLESS OF THE SELLER'S OPINION
+STARTING PRICE / SELLING PRICE - IF THIS PRICE IS REACHED THE AUCTION WILL BE CLOSED REGARDLESS OF THE SELLER'S OPINION
 ----------------------------------------------------------------------------------------------------------------
 
 Proper bids. Not up to the seller to take them.

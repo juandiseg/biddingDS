@@ -1,47 +1,60 @@
+
 import java.rmi.RemoteException;
 import java.util.HashMap;
 
 public class sellerHandler implements iSeller {
 
     @Override
-    public AuctionItem getSpec(int itemId, int clientId) throws RemoteException {
-        AuctionItem item = AuctionManager.getAuctionItem(itemId);
-        if (item == null)
-            return null; // Create default object.
-        return item;
+    public HashMap<Integer, AuctionItem> getSpec(User user, int itemId) throws RemoteException {
+        return NormalAuctionManager.getSpec(user, itemId);
     }
 
     @Override
-    public int createAuction(int sellerID, int itemID, String itemTitle, String itemDescription, int itemCondition,
-            Double startingPrice, Double acceptablePrice) throws RemoteException {
-        int auctionID = AuctionManager.generateAuctionID();
-        if (AuctionManager.getAvailableItems().get(itemID) == null) {
+    public int createAuction(String sellerUsername, int itemID, String itemTitle, String itemDescription,
+            int itemCondition, Double reservePrice, Double sellingPrice) throws RemoteException {
+        if (NormalAuctionManager.getAvailableItems().get(itemID) == null) {
             return -1;
         }
-        AuctionManager.addAuction(new Auction(sellerID, auctionID,
-                new AuctionItem(itemID, itemTitle, itemDescription, itemCondition),
-                startingPrice, acceptablePrice));
-        return auctionID;
+        return NormalAuctionManager.addAuction(
+                new AuctionItem(sellerUsername, itemID, itemTitle, itemDescription, itemCondition, sellingPrice),
+                reservePrice);
     }
 
     @Override
-    public String closeAuction(int userID, int auctionID) throws RemoteException {
-        return AuctionManager.closeAuction(userID, auctionID);
+    public String closeAuction(User user, int auctionID) throws RemoteException {
+        return NormalAuctionManager.closeAuction(user, auctionID);
     }
 
     @Override
-    public String checkAuctionStatus(int userID, int auctionID) throws RemoteException {
-        return AuctionManager.checkAuctionStatusSeller(userID, auctionID);
+    public String checkAuctionStatus(User user, int auctionID) throws RemoteException {
+        return NormalAuctionManager.checkAuctionStatusSeller(user, auctionID);
     }
 
     @Override
     public String getItemsReferenceID() throws RemoteException {
-        HashMap<Integer, String> items = AuctionManager.getAvailableItems();
+        HashMap<Integer, String> items = NormalAuctionManager.getAvailableItems();
         String text = "";
         for (int i = 1; i < items.size() + 1; i++) {
             text = text.concat("The item #" + i + " references the product: \"" + items.get(i) + "\".\n");
         }
         return text;
+    }
+
+    @Override
+    public User logInUsername(String username, String password) throws RemoteException {
+        if (UserManager.validateUserByUsername(username, password) == 'S')
+            return UserManager.getUser(username);
+        return null;
+    }
+
+    @Override
+    public User signUp(String username, String email, String password) throws RemoteException {
+        return UserManager.addUser(username, email, password, 'S');
+    }
+
+    @Override
+    public boolean doesUsernameExist(String username) throws RemoteException {
+        return UserManager.usernamePresent(username);
     }
 
 }
