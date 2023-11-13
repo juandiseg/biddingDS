@@ -2,16 +2,18 @@ import java.util.ArrayList;
 
 public class Auction {
 
-    private final int sellerID;
+    final static Double WINNING_BID = -1.0;
+    final static Double ALREADY_WINNING_BID = -2.0;
+    final static Double INSUFFICIENT_BID = -3.0;
+
     private final int auctionID;
     private AuctionItem item;
-    private float startingPrice;
-    private float reservePrice;
+    private final Double startingPrice;
+    private final Double reservePrice;
+    // private float sellingPrice;
     private ArrayList<bids> listBids;
-    private boolean auctionClosed = false;
 
-    public Auction(int sellerID, int auctionID, AuctionItem item, float startingPrice, float reservePrice) {
-        this.sellerID = sellerID;
+    public Auction(int auctionID, AuctionItem item, Double startingPrice, Double reservePrice) {
         this.auctionID = auctionID;
         this.item = item;
         this.startingPrice = startingPrice;
@@ -23,7 +25,11 @@ public class Auction {
         return auctionID;
     }
 
-    public float getReservePrice() {
+    public boolean isAuctionClosed() {
+        return item.isAuctionClosed();
+    }
+
+    public Double getReservePrice() {
         return reservePrice;
     }
 
@@ -32,53 +38,59 @@ public class Auction {
     }
 
     public int getSellerID() {
-        return sellerID;
+        return item.getSellerID();
     }
 
-    public float getStartingPrice() {
+    public Double getStartingPrice() {
         return startingPrice;
     }
 
     public String closeAuction() {
-        if (auctionClosed)
+        if (item.isAuctionClosed())
             return "The auction is already closed";
-        auctionClosed = true;
+        item.closeAuction();
         bids winningBid = getWinningBid();
         String response = "The auction has been CLOSED. ";
         if (winningBid == null)
             return response.concat("No bids were made.");
         if (winningBid.bidAmount < reservePrice)
             return response
-                    .concat("The reserve price wasn't reached. The highest bid was " + winningBid.bidAmount + "€.");
+                    .concat("The reserve price wasn't reached. The highest bid was " + winningBid.bidAmount + " EUR.");
         return "The winner {" + winningBid.username + "} bidded = "
-                + winningBid.bidAmount + "€. You can contact them at " + winningBid.email + ".";
+                + winningBid.bidAmount + " EUR. You can contact them at " + winningBid.email + ".";
     }
 
     public AuctionItem getItem() {
         return item;
     }
 
-    public float bid(String username, String email, float bidAmount) {
+    public Double bid(String username, String email, Double bidAmount) {
         if (bidAmount < startingPrice)
-            return -3;
+            return INSUFFICIENT_BID;
         bids winningBid = getWinningBid();
         if (winningBid == null) {
             listBids.add(new bids(username, email, bidAmount));
-            return -1;
+            return WINNING_BID;
         }
         if (winningBid.username == username)
-            return -2;
+            return ALREADY_WINNING_BID;
         else if (winningBid.bidAmount < bidAmount) {
             listBids.add(new bids(username, email, bidAmount));
-            return -1;
+            return WINNING_BID;
         } else
             return winningBid.bidAmount;
     }
 
-    public float getWinningBidAmount() {
+    public Double getWinningBidAmount() {
         if (listBids.isEmpty())
-            return -1;
+            return -1.0;
         return listBids.get(listBids.size() - 1).bidAmount;
+    }
+
+    public String getWinningBidUsername() {
+        if (listBids.isEmpty())
+            return "";
+        return listBids.get(listBids.size() - 1).username;
     }
 
     private bids getWinningBid() {
@@ -90,9 +102,9 @@ public class Auction {
     private class bids {
         public String username;
         public String email;
-        public float bidAmount;
+        public Double bidAmount;
 
-        public bids(String username, String email, float bidAmount) {
+        public bids(String username, String email, Double bidAmount) {
             this.username = username;
             this.email = email;
             this.bidAmount = bidAmount;

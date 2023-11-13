@@ -1,4 +1,5 @@
 import java.rmi.RemoteException;
+import java.util.HashMap;
 
 public class sellerHandler implements iSeller {
 
@@ -11,11 +12,14 @@ public class sellerHandler implements iSeller {
     }
 
     @Override
-    public int createAuction(int sellerID, String itemTitle, String itemDescription, int itemCondition,
-            Float startingPrice, Float acceptablePrice) throws RemoteException {
+    public int createAuction(int sellerID, int itemID, String itemTitle, String itemDescription, int itemCondition,
+            Double startingPrice, Double acceptablePrice) throws RemoteException {
         int auctionID = AuctionManager.generateAuctionID();
+        if (AuctionManager.getAvailableItems().get(itemID) == null) {
+            return -1;
+        }
         AuctionManager.addAuction(new Auction(sellerID, auctionID,
-                new AuctionItem(AuctionManager.generateItemID(), itemTitle, itemDescription, itemCondition),
+                new AuctionItem(itemID, itemTitle, itemDescription, itemCondition),
                 startingPrice, acceptablePrice));
         return auctionID;
     }
@@ -27,7 +31,17 @@ public class sellerHandler implements iSeller {
 
     @Override
     public String checkAuctionStatus(int userID, int auctionID) throws RemoteException {
-        return AuctionManager.checkAuctionStatus(userID, auctionID);
+        return AuctionManager.checkAuctionStatusSeller(userID, auctionID);
+    }
+
+    @Override
+    public String getItemsReferenceID() throws RemoteException {
+        HashMap<Integer, String> items = AuctionManager.getAvailableItems();
+        String text = "";
+        for (int i = 1; i < items.size() + 1; i++) {
+            text = text.concat("The item #" + i + " references the product: \"" + items.get(i) + "\".\n");
+        }
+        return text;
     }
 
 }

@@ -3,19 +3,19 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 
-public class AuctionManager {
+public class DoubleAuctionManager {
 
     private final static Double DOESNT_EXIST = 0.0;
     private final static Double AUCTION_CLOSED = -4.0;
 
     private static int lastAuctionID = 0;
-    private static Hashtable<Integer, LinkedList<Auction>> availableAuctions = new Hashtable<>();
+    private static Hashtable<Integer, LinkedList<DoubleAuction>> availableDoubleAuctions = new Hashtable<>();
+
     static {
-        availableAuctions.put(1, new LinkedList<Auction>());
-        availableAuctions.put(2, new LinkedList<Auction>());
-        availableAuctions.put(3, new LinkedList<Auction>());
-        availableAuctions.put(4, new LinkedList<Auction>());
-        availableAuctions.put(5, new LinkedList<Auction>());
+        availableDoubleAuctions.put(1, new LinkedList<DoubleAuction>());
+        availableDoubleAuctions.put(2, new LinkedList<DoubleAuction>());
+        availableDoubleAuctions.put(3, new LinkedList<DoubleAuction>());
+        availableDoubleAuctions.put(4, new LinkedList<DoubleAuction>());
     }
 
     public static String checkAuctionStatusSeller(int userID, int auctionID) {
@@ -66,74 +66,31 @@ public class AuctionManager {
     }
 
     public static void addAuction(Auction newAuction) {
-        availableAuctions.get(hashFunction(newAuction.getAuctionID())).add(newAuction);
-    }
-
-    private static int hashFunction(int auctionID) {
-        return auctionID % 5;
+        availableDoubleAuctions.get(newAuction.getItem().getItemId()).add(newAuction);
     }
 
     public static String getAuctionsDisplay(int itemID) {
         String displayString = "";
         for (int i = 1; i < 6; i++) {
-            for (Auction temp : availableAuctions.get(i)) {
+            for (Auction temp : availableDoubleAuctions.get(i)) {
                 if ((temp.getItem().getItemId() == itemID || itemID < 0) && !temp.isAuctionClosed()) {
-                    String tempString = "Auction #" + temp.getAuctionID() + " :\n";
+                    String tempString = "Double Auction #" + i + " :\n";
                     tempString = tempString.concat("-------------\n");
-                    tempString = tempString.concat("Item\t| ID \t= " + temp.getItem().getItemId() + ".\n");
-                    tempString = tempString.concat("\t| Title \t= " + temp.getItem().getItemTitle() + ".\n");
-                    tempString = tempString
-                            .concat("\t| Description \t= " + temp.getItem().getItemDescription() + ".\n");
-                    tempString = tempString.concat("\t| Condition \t= " + temp.getItem().getItemCondition() + ".\n");
-                    tempString = tempString.concat("Starting Price = " + temp.getStartingPrice() + " EUR. \n");
+                    tempString = tempString.concat("Item\t| " + itemNames.get(i) + "\n");
+                    tempString = tempString.concat("# on sale\t| " + availableDoubleAuctions.get(i).size() + "\n");
                     Double winningBid = temp.getWinningBidAmount();
-                    if (winningBid == -1)
-                        tempString = tempString.concat("Highest Bid    = THERE ARE NO BIDS.\n\n");
-                    else
-                        tempString = tempString.concat("Highest Bid    = " + winningBid + " EUR. \n\n");
-                    tempString = tempString.concat("----------------------------------------------------\n");
-
                     displayString = displayString.concat(tempString);
                 }
             }
         }
         if (displayString.equals("")) {
-            return "There are no open auctions for the specified item";
+            return "There are no available double auctions for the specified item.";
         }
         return displayString;
     }
 
-    public static String getItemsDisplay() {
-        List<Integer> alreadyListed = new LinkedList<Integer>();
-        String displayString = "The following items have open auctions:\n";
-        for (int i = 1; i < availableAuctions.size() + 1; i++) {
-            for (Auction temp : availableAuctions.get(i)) {
-                int itemID = temp.getItem().getItemId();
-                if (!alreadyListed.contains(itemID) && !temp.isAuctionClosed()) {
-                    displayString = displayString
-                            .concat("\tItem #" + itemID + " : " + ITEMS.getItems().get(itemID) + "\n");
-                    alreadyListed.add(itemID);
-                }
-            }
-        }
-        if (displayString.equals("")) {
-            return "There are no open auctions.";
-        }
-        return displayString;
-    }
-
-    public static AuctionItem getAuctionItem(int itemID) {
-        for (int i = 1; i < 6; i++) {
-            for (Auction temp : availableAuctions.get(i)) {
-                if (temp.getItem().getItemId() == itemID)
-                    return temp.getItem();
-            }
-        }
-        return null;
-    }
-
-    public static Double bid(int auctionID, String username, String email, Double biddingAmount) {
-        Auction theAuction = getAuction(auctionID);
+    public static boolean bid(int doubleAuctionID, String username, String email, Double biddingAmount) {
+        Auction theAuction = getAuction(doubleAuctionID);
         if (theAuction == null)
             return DOESNT_EXIST;
         if (theAuction.isAuctionClosed())

@@ -3,18 +3,23 @@ import java.rmi.RemoteException;
 public class buyerHandler implements iBuyer {
 
     @Override
-    public float bid(int auctionID, String username, String email, float bidAmount) throws RemoteException {
+    public Double bid(int auctionID, String username, String email, Double bidAmount) throws RemoteException {
         return AuctionManager.bid(auctionID, username, email, bidAmount);
     }
 
     @Override
-    public String displayAuctions() throws RemoteException {
-        return AuctionManager.getDisplayString();
+    public String checkAuctionStatus(String username, int auctionID) throws RemoteException {
+        return "Auction going fine";
     }
 
     @Override
-    public String checkAuctionStatus(int userID, int auctionID) throws RemoteException {
-        return "Auction going fine";
+    public String getAuctionsDisplay(int itemID) throws RemoteException {
+        return AuctionManager.getAuctionsDisplay(itemID);
+    }
+
+    @Override
+    public String getItemsDisplay() throws RemoteException {
+        return AuctionManager.getItemsDisplay();
     }
 
 }

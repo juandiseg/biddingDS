@@ -1,27 +1,49 @@
 public class AuctionItem implements java.io.Serializable {
 
+    private final int sellerID;
+    private boolean auctionClosed = false;
     private int itemId;
     private String itemTitle;
     private String itemDescription;
     private int itemCondition;
+    private double sellingPrice;
 
-    public AuctionItem(int itemId, String itemTitle, String itemDescription, int itemCondition) {
+    public AuctionItem(int sellerID, int itemId, String itemTitle, String itemDescription, int itemCondition,
+            double sellingPrice) {
+        this.sellerID = sellerID;
         this.itemId = itemId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
         this.itemCondition = itemCondition;
+        this.sellingPrice = sellingPrice;
     }
 
     public int getItemId() {
         return itemId;
     }
 
+    public void closeAuction() {
+        auctionClosed = false;
+    }
+
+    public boolean isAuctionClosed() {
+        return auctionClosed;
+    }
+
     public String getItemTitle() {
         return itemTitle;
     }
 
+    public double getSellingPrice() {
+        return sellingPrice;
+    }
+
     public String getItemDescription() {
         return itemDescription;
+    }
+
+    public int getSellerID() {
+        return sellerID;
     }
 
     public String getItemCondition() {
