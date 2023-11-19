@@ -1,47 +1,48 @@
 
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 public class DoubleAuctionManager {
 
-    private static int lastAuctionID = 4;
-    private static Hashtable<Integer, DoubleAuction> availableDoubleAuctions = new Hashtable<>();
+    private static int lastAuctionID = 0;
+    private static Hashtable<Integer, LinkedList<DoubleAuction>> availableDoubleAuctions = new Hashtable<>();
     static {
-        availableDoubleAuctions.put(1, new DoubleAuction(1, 1));
-        availableDoubleAuctions.put(2, new DoubleAuction(2, 2));
-        availableDoubleAuctions.put(3, new DoubleAuction(3, 3));
-        availableDoubleAuctions.put(4, new DoubleAuction(4, 4));
+        availableDoubleAuctions.put(1, new LinkedList<DoubleAuction>());
+        availableDoubleAuctions.put(2, new LinkedList<DoubleAuction>());
+        availableDoubleAuctions.put(3, new LinkedList<DoubleAuction>());
+        availableDoubleAuctions.put(4, new LinkedList<DoubleAuction>());
     }
 
-    public static String checkDoubleAuctionStatus(int auctionID) {
-        DoubleAuction theAuction = availableDoubleAuctions.get(auctionID);
-        if (theAuction.isAuctionClosed()) {
-            return "The auction is closed. You can check ";
-        }
-        String status = "This double auction is for: " + ITEMS.getItems().get(auctionID) + "(s).\n";
-        status = status
-                .concat("There are " + theAuction.getNumberOfBids() + " bids for " + theAuction.getNumberOfSellers()
-                        + " items for sale.\n");
-        return status;
+    public static int addDoubleAuction(int itemID, int limitSellers, int limitBids) {
+        // if(checkItemID) return false;
+        lastAuctionID++;
+        DoubleAuction temp = new DoubleAuction(lastAuctionID, lastAuctionID, limitSellers, limitBids);
+        availableDoubleAuctions.get(hashFunction(lastAuctionID)).add(temp);
+        return lastAuctionID;
     }
 
-    public static void addAuctionItem(AuctionItem newItem) {
-        availableDoubleAuctions.get(newItem.getItemId()).addAuction(newItem);
+    private static int hashFunction(int auctionID) {
+        return auctionID % 4 + 1;
     }
 
-    public static String getDoubleAuctionsDisplay(int itemID) {
-        String displayString = "";
-        for (int i = 1; i < availableDoubleAuctions.size() + 1; i++) {
-            displayString = displayString.concat(checkDoubleAuctionStatus(i));
-        }
-        if (displayString.equals("")) {
-            return "There are no available double auctions for the specified item.";
-        }
-        return displayString;
+    public static int getItemIDofAuction(int auctionID) {
+        return getDoubleAuction(auctionID).getItemID();
     }
 
-    public static boolean bid(int doubleAuctionID, String username, Double biddingAmount) {
-        DoubleAuction theAuction = availableDoubleAuctions.get(doubleAuctionID);
-        return theAuction.bid(UserManager.getUser(username), biddingAmount);
+    public static void addAuctionItem(int doubleAuctionID, AuctionItem newItem) {
+        DoubleAuction doubleAuction = getDoubleAuction(doubleAuctionID);
+        doubleAuction.addAuction(newItem);
+    }
+
+    private static DoubleAuction getDoubleAuction(int doubleAuctionID) {
+        return availableDoubleAuctions.get(hashFunction(doubleAuctionID)).stream()
+                .filter(temp -> (temp.getDoubleAuctionID() == doubleAuctionID)).collect(Collectors.toList()).get(0);
+    }
+
+    public static boolean bid(int doubleAuctionID, User user, Double biddingAmount) {
+        DoubleAuction theAuction = getDoubleAuction(doubleAuctionID);
+        return theAuction.addBid(user, biddingAmount);
     }
 
     public static int generateAuctionID() {
@@ -49,10 +50,8 @@ public class DoubleAuctionManager {
         return lastAuctionID;
     }
 
-    public static String closeAuction(String sellerUsername, int doubleAuctionID) {
-        DoubleAuction theAuction = availableDoubleAuctions.get(doubleAuctionID);
-        if (theAuction == null)
-            return "There are no auctions with the specified ID.";
-        return theAuction.closeAuction(sellerUsername);
+    public static boolean isSellersLimitReached(int auctionID) {
+        return getDoubleAuction(auctionID).isSellersLimitReached();
     }
+
 }

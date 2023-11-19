@@ -1,11 +1,8 @@
-
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NormalAuctionManager {
 
@@ -31,30 +28,54 @@ public class NormalAuctionManager {
         if (theAuction.getSellerUsername().equals(user.getUsername())) {
             String status = "";
             if (theAuction.isAuctionClosed())
-                status = "This auction is already closed. Summary:\n";
+                status = "This auction is already CLOSED.\n";
             int numberBids = theAuction.getNumberOfBids();
-            if (numberBids == 0)
+            if (numberBids == 0) {
                 status = status.concat("There aren't any bids.\n");
-            else
+            } else {
                 status = status.concat("There are " + numberBids + " bids.\n");
+            }
             Double winningBid = theAuction.getWinningBidAmount();
             Double reservePrice = theAuction.getReservePrice();
-            if (numberBids != 0)
-                status = status.concat("The currently winning bid is for " + winningBid + "€. ");
-            if (winningBid >= reservePrice)
+            Double sellingPrice = theAuction.getSellingPrice();
+
+            if (theAuction.isClosedAndHighestBidBetweenReserveAndSellingPrices()) {
+                if (theAuction.isWinnerApproved()) {
+                    status = status.concat("The reserve price of " + reservePrice
+                            + " EUR was reached, and a winner granted was granted with a bid for " + winningBid
+                            + " EUR.");
+                    return status;
+                }
+                if (!theAuction.isWinnerApproved()) {
+                    status = status.concat("The reserve price of " + reservePrice
+                            + " EUR was reached, but the selling price of " + sellingPrice
+                            + " was not. The highest bid was for " + winningBid
+                            + " EUR, but it was not granted a win.");
+                    return status;
+                }
+            }
+            if (numberBids != 0) {
+                status = status.concat("The winning bid is for " + winningBid + " EUR. ");
+            }
+
+            if (winningBid >= reservePrice) {
                 status = status.concat("The reserve price of " + reservePrice + " EUR has been reached.");
-            else
+            } else {
                 status = status.concat("The reserve price of " + reservePrice + " EUR has NOT been reached.");
+            }
+            if (winningBid >= sellingPrice) {
+                status = status.concat("The selling price of " + sellingPrice + " EUR has been reached.");
+            } else {
+                status = status.concat("The selling price of " + sellingPrice + " EUR has NOT been reached.");
+            }
             return status;
         }
         return "You don't have access to this auction's status.";
     }
 
-    public static String checkAuctionStatusBuyer(String username, String password, int auctionID) {
-        char result = UserManager.validateUserByUsername(username, password);
-        if (result == 'E') {
-            return "The authetication details were wrong.";
-        } else if (result == 'S') {
+    public static String checkAuctionStatusBuyer(User user, int auctionID) {
+        boolean valid = UserManager.validateUser(user, 'B');
+        if (!valid) {
             return "You don't have access to this functionality";
         }
         NormalAuction theAuction = getAuction(auctionID);
@@ -64,10 +85,10 @@ public class NormalAuctionManager {
         Double winningBid = theAuction.getWinningBidAmount();
         String winningUsername = theAuction.getWinningBidUsername();
         if (winningBid == -1.0) {
-            status = status.concat("There were no bids for this auction.");
+            status = status.concat("There are no bids for this auction.");
             return status;
         }
-        if (winningUsername.equals(username)) {
+        if (winningUsername.equals(user.getUsername())) {
             status = status.concat("You were the winning bid, with a " + winningBid + "EUR bid.");
         } else {
             status = status.concat("Someone else won the bid with a " + winningBid + "EUR bid.");
@@ -75,18 +96,88 @@ public class NormalAuctionManager {
         return status;
     }
 
+    public static String viewReverseAuction(int itemID) {
+        NormalAuction[] listAuctions = getLowestbids(itemID, 3);
+        String reverseAuctions = "Three auctions with the currently lowest bids for the item #" + itemID + ":\n\n";
+        for (int i = 0; i < listAuctions.length; i++) {
+            reverseAuctions = reverseAuctions.concat("Auction ID #" + listAuctions[i].getAuctionID() + ": \n");
+            reverseAuctions = reverseAuctions
+                    .concat("Item title\t\t|" + listAuctions[i].getItem().getItemTitle() + "\n");
+            reverseAuctions = reverseAuctions
+                    .concat("Item description\t\t|" + listAuctions[i].getItem().getItemDescription() + "\n");
+            reverseAuctions = reverseAuctions
+                    .concat("Item condition\t\t|" + listAuctions[i].getItem().getItemCondition() + "\n");
+            reverseAuctions = reverseAuctions
+                    .concat("Highest bid\t\t|" + listAuctions[i].getWinningBidAmount() + " EUR.\n\n");
+        }
+        return reverseAuctions;
+    }
+
+    private static NormalAuction[] getLowestbids(int itemID, int limitBids) {
+        NormalAuction[] listAuctions = new NormalAuction[limitBids];
+        for (int i = 0; i < limitBids; i++) {
+            listAuctions[i] = null;
+        }
+        for (int i : availableAuctions.keySet()) {
+            for (NormalAuction temp : availableAuctions.get(i)) {
+                if (temp.getItem().getItemId() == itemID) {
+                    addLowerBid(listAuctions, temp);
+                }
+            }
+        }
+        sortAuctionsDecreasing(listAuctions);
+        return listAuctions;
+    }
+
+    private static void sortAuctionsDecreasing(NormalAuction[] listAuctions) {
+        for (int i = 0; i < listAuctions.length - 1; i++) {
+            int tempHighest = i;
+            for (int j = i; j < listAuctions.length; j++) {
+                if (listAuctions[i].getWinningBidAmount() < listAuctions[j].getWinningBidAmount()) {
+                    if (listAuctions[tempHighest].getWinningBidAmount() < listAuctions[j].getWinningBidAmount()) {
+                        tempHighest = j;
+                    }
+
+                }
+            }
+            NormalAuction temp = listAuctions[i];
+            listAuctions[i] = listAuctions[tempHighest];
+            listAuctions[tempHighest] = temp;
+        }
+    }
+
+    private static void addLowerBid(NormalAuction[] listAuctions, NormalAuction temp) {
+        for (int i = 0; i < listAuctions.length; i++) {
+            if (listAuctions[i] == null) {
+                listAuctions[i] = temp;
+                return;
+            }
+        }
+        int highest = 0;
+
+        for (int i = 1; i < listAuctions.length; i++) {
+            if (listAuctions[highest].getWinningBidAmount() < listAuctions[i].getWinningBidAmount()) {
+                highest = i;
+            }
+        }
+        if (listAuctions[highest].getWinningBidAmount() > temp.getWinningBidAmount()) {
+            listAuctions[highest] = temp;
+        }
+    }
+
     public static HashMap<Integer, String> getAvailableItems() {
         return ITEMS.getItems();
     }
 
     public static int addAuction(AuctionItem item, double reservePrice) {
-        NormalAuction newAuction = new NormalAuction(lastAuctionID++, item, reservePrice);
+        lastAuctionID++;
+        NormalAuction newAuction = new NormalAuction(lastAuctionID, item, reservePrice, item.getSellingPrice());
         availableAuctions.get(hashFunction(newAuction.getAuctionID())).add(newAuction);
-        return lastAuctionID;
+        return newAuction.getAuctionID();
     }
 
     private static int hashFunction(int auctionID) {
-        return auctionID % 5;
+        return auctionID % 5 + 1;
     }
 
     public static String getAuctionsDisplay(int itemID) {
@@ -95,20 +186,18 @@ public class NormalAuctionManager {
             for (NormalAuction temp : availableAuctions.get(i)) {
                 if ((temp.getItem().getItemId() == itemID || itemID < 0) && !temp.isAuctionClosed()) {
                     String tempString = "Auction #" + temp.getAuctionID() + " :\n";
-                    tempString = tempString.concat("-------------\n");
+                    tempString = tempString.concat("----------------------------------------------------\n");
                     tempString = tempString.concat("Item\t| ID \t= " + temp.getItem().getItemId() + ".\n");
                     tempString = tempString.concat("\t| Title \t= " + temp.getItem().getItemTitle() + ".\n");
                     tempString = tempString
                             .concat("\t| Description \t= " + temp.getItem().getItemDescription() + ".\n");
                     tempString = tempString.concat("\t| Condition \t= " + temp.getItem().getItemCondition() + ".\n");
-                    tempString = tempString.concat("Starting Price = " + temp.getItem().getSellingPrice() + " EUR. \n");
                     Double winningBid = temp.getWinningBidAmount();
                     if (winningBid == -1)
-                        tempString = tempString.concat("Highest Bid    = THERE ARE NO BIDS.\n\n");
+                        tempString = tempString.concat("Highest Bid\t= THERE ARE NO BIDS.\n\n");
                     else
-                        tempString = tempString.concat("Highest Bid    = " + winningBid + " EUR. \n\n");
-                    tempString = tempString.concat("----------------------------------------------------\n");
-
+                        tempString = tempString.concat("Highest Bid\t= " + winningBid + " EUR.\n");
+                    tempString = tempString.concat("----------------------------------------------------\n\n");
                     displayString = displayString.concat(tempString);
                 }
             }
@@ -121,6 +210,9 @@ public class NormalAuctionManager {
 
     public static String getItemsDisplay() {
         List<Integer> alreadyListed = new LinkedList<Integer>();
+        if (availableAuctions.isEmpty()) {
+            return "There are no open auctions.";
+        }
         String displayString = "The following items have open auctions:\n";
         for (int i = 1; i < availableAuctions.size() + 1; i++) {
             for (NormalAuction temp : availableAuctions.get(i)) {
@@ -131,9 +223,6 @@ public class NormalAuctionManager {
                     alreadyListed.add(itemID);
                 }
             }
-        }
-        if (displayString.equals("")) {
-            return "There are no open auctions.";
         }
         return displayString;
     }
@@ -149,13 +238,13 @@ public class NormalAuctionManager {
         return map;
     }
 
-    public static Double bid(int auctionID, String username, String email, Double biddingAmount) {
+    public static Double bid(int auctionID, User user, Double biddingAmount) {
         NormalAuction theAuction = getAuction(auctionID);
         if (theAuction == null)
             return DOESNT_EXIST;
         if (theAuction.isAuctionClosed())
             return AUCTION_CLOSED;
-        return theAuction.bid(UserManager.getUser(username), biddingAmount);
+        return theAuction.bid(user, biddingAmount);
     }
 
     public static int generateAuctionID() {
@@ -183,5 +272,16 @@ public class NormalAuctionManager {
         if (theAuction.getSellerUsername().equals(user.getUsername()))
             return theAuction.closeAuction();
         return "You don't have access to this editting this auction.";
+    }
+
+    public static String closeAuctionConfirmation(int auctionID, boolean isApproved) {
+        NormalAuction theAuction = getAuction(auctionID);
+        if (isApproved) {
+            theAuction.setWinnerApproved(true);
+            return theAuction.getWinnerConfirmation();
+        } else {
+            theAuction.setWinnerApproved(false);
+            return "Auction is CLOSED. There were no winners.";
+        }
     }
 }

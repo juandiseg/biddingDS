@@ -10,7 +10,17 @@ public interface iSeller extends iUser {
 
     public String closeAuction(User user, int auctionID) throws RemoteException;
 
+    public String closeAuctionConfirmation(int auctionID, boolean isApproved) throws RemoteException;
+
     public String checkAuctionStatus(User user, int auctionID) throws RemoteException;
 
     public String getItemsReferenceID() throws RemoteException;
+
+    public int addDoubleAuction(int itemID, int limitSellers, int limitBids);
+
+    public void addAuctionItem(int doubleAuctionID, AuctionItem newItem);
+
+    public int getItemIDofAuction(int auctionID);
+
+    public boolean isSellersLimitReached(int auctionID);
 }

@@ -4,13 +4,13 @@ import java.rmi.RemoteException;
 public class buyerHandler implements iBuyer {
 
     @Override
-    public Double bid(int auctionID, String username, String email, Double bidAmount) throws RemoteException {
-        return NormalAuctionManager.bid(auctionID, username, email, bidAmount);
+    public Double bid(int auctionID, User user, Double bidAmount) throws RemoteException {
+        return NormalAuctionManager.bid(auctionID, user, bidAmount);
     }
 
     @Override
-    public String checkAuctionStatus(String username, int auctionID) throws RemoteException {
-        return "Auction going fine";
+    public String checkAuctionStatus(User user, int auctionID) throws RemoteException {
+        return NormalAuctionManager.checkAuctionStatusBuyer(user, auctionID);
     }
 
     @Override
@@ -38,6 +38,12 @@ public class buyerHandler implements iBuyer {
     @Override
     public boolean doesUsernameExist(String username) throws RemoteException {
         return UserManager.usernamePresent(username);
+    }
+
+    @Override
+    public String viewReverseAuction(int itemID) throws RemoteException {
+        return NormalAuctionManager.viewReverseAuction(itemID);
+
     }
 
 }

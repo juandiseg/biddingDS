@@ -5,22 +5,33 @@ public class NormalAuction {
 
     final static Double WINNING_BID = -1.0;
     final static Double ALREADY_WINNING_BID = -2.0;
-    final static Double INSUFFICIENT_BID = -3.0;
     private AuctionItem item;
 
     private final int auctionID;
     private final Double reservePrice;
+    private final Double sellingPrice;
+    private boolean winnerApproved = false;
     private ArrayList<Bids> listBids;
 
-    public NormalAuction(int auctionID, AuctionItem item, Double reservePrice) {
+    public NormalAuction(int auctionID, AuctionItem item, Double reservePrice, Double sellingPrice) {
         this.auctionID = auctionID;
         this.item = item;
         this.reservePrice = reservePrice;
+        this.sellingPrice = sellingPrice;
         listBids = new ArrayList<Bids>();
+    }
+
+    public boolean isClosedAndHighestBidBetweenReserveAndSellingPrices() {
+        Double winningBid = getWinningBidAmount();
+        return winningBid >= reservePrice && winningBid < sellingPrice && isAuctionClosed();
     }
 
     public int getAuctionID() {
         return auctionID;
+    }
+
+    public boolean isWinnerApproved() {
+        return winnerApproved;
     }
 
     public boolean isAuctionClosed() {
@@ -31,6 +42,10 @@ public class NormalAuction {
         return reservePrice;
     }
 
+    public Double getSellingPrice() {
+        return sellingPrice;
+    }
+
     public int getNumberOfBids() {
         return listBids.size();
     }
@@ -39,20 +54,47 @@ public class NormalAuction {
         return item.getSellerUsername();
     }
 
-    public String closeAuction() {
-        if (item.isAuctionClosed())
-            return "The auction is already closed";
+    public void setWinnerApproved(boolean approvation) {
+        winnerApproved = approvation;
         item.closeAuction();
+    }
+
+    public String closeAuction() {
         Bids winningBid = getWinningBid();
-        String response = "The auction has been CLOSED. ";
-        if (winningBid == null)
-            return response.concat("No bids were made.");
-        if (winningBid.getBidAmount() < reservePrice)
+        if (item.isAuctionClosed()) {
+            return "The auction is already closed";
+        }
+        String response = "";
+        if (winningBid == null) {
+            item.closeAuction();
+            return response.concat("No bids were made.\nAuction is CLOSED.");
+        }
+        if (winningBid.getBidAmount() < reservePrice) {
+            item.closeAuction();
             return response
                     .concat("The reserve price wasn't reached. The highest bid was " + winningBid.getBidAmount()
-                            + " EUR.");
+                            + " EUR.\nAuction is CLOSED.");
+        } else if (winningBid.getBidAmount() < sellingPrice) {
+            return response
+                    .concat("The selling price wasn't reached. The highest bid was " + winningBid.getBidAmount()
+                            + " EUR.\nDo you want to grant the item to this bidder?");
+        } else {
+            item.closeAuction();
+            return getWinnerConfirmation(winningBid) + "\nAuction is CLOSED.";
+        }
+    }
+
+    public String getWinnerConfirmation() {
+        Bids winningBid = getWinningBid();
         return "The winner {" + winningBid.getUser().getUsername() + "} bidded = "
-                + winningBid.getBidAmount() + " EUR. You can contact them at " + winningBid.getUser().getEmail() + ".";
+                + winningBid.getBidAmount() + " EUR. You can contact them at " + winningBid.getUser().getEmail()
+                + ".";
+    }
+
+    private String getWinnerConfirmation(Bids winningBid) {
+        return "The winner {" + winningBid.getUser().getUsername() + "} bidded = "
+                + winningBid.getBidAmount() + " EUR. You can contact them at " + winningBid.getUser().getEmail()
+                + ".";
     }
 
     public AuctionItem getItem() {
@@ -60,8 +102,6 @@ public class NormalAuction {
     }
 
     public Double bid(User user, Double bidAmount) {
-        if (bidAmount < item.getSellingPrice())
-            return INSUFFICIENT_BID;
         Bids winningBid = getWinningBid();
         if (winningBid == null) {
             listBids.add(new Bids(user, bidAmount));
@@ -72,8 +112,8 @@ public class NormalAuction {
         else if (winningBid.getBidAmount() < bidAmount) {
             listBids.add(new Bids(user, bidAmount));
             return WINNING_BID;
-        } else
-            return winningBid.getBidAmount();
+        }
+        return winningBid.getBidAmount();
     }
 
     public Double getWinningBidAmount() {

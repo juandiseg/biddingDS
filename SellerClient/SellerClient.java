@@ -29,6 +29,8 @@ public class SellerClient {
                 String command = scanner.nextLine().toUpperCase();
                 if (command.equals("ADD BASIC AUCTION")) {
                     addBasicAuction(server, scanner);
+                } else if (command.equals("ADD DOUBLE AUCTION")) {
+                    doubleActionHandler(server, scanner);
                 } else if (command.equals("GET SPECIFICATIONS ITEMS")) {
                     getSpecsAuction(server, scanner);
                 } else if (command.equals("CLOSE BASIC AUCTION")) {
@@ -80,7 +82,7 @@ public class SellerClient {
         }
     }
 
-    private static void addBasicAuction(iSeller server, Scanner scanner) throws NoSuchElementException {
+    private static void addBasicAuction(iSeller server, Scanner scanner) {
         try {
             String sellerUsername = userInfo.getUsername();
             System.out.print("\nEnter the item's ID: ");
@@ -119,10 +121,82 @@ public class SellerClient {
                 System.out.println("---------------------------------------------------------");
             }
         } catch (Exception e) {
-            System.out.println("The formatting of the data was incorrect.");
-            System.out.println("E.g.: 1, Item's title, Item's description, 1, 19.99, 24.99");
             addBasicAuction(server, scanner);
             return;
+        }
+    }
+
+    private static void doubleActionHandler(iSeller server, Scanner scanner) {
+        System.out.println("Do you want to join an existing double auction or create one?");
+        System.out.print("Type CREATE or JOIN:");
+        String decision = scanner.nextLine();
+        if (decision.toUpperCase().equals("CREATE")) {
+            System.out.println(addDoubleAuction(server, scanner));
+        } else if (decision.toUpperCase().equals("JOIN")) {
+            handleJoin(server, scanner);
+        }
+        return;
+    }
+
+    private static void handleJoin(iSeller server, Scanner scanner) {
+        try {
+            System.out.print("Enter the double auction's ID: ");
+            int auctionID = Integer.parseInt(scanner.nextLine());
+            joinDoubleAuction(server, scanner, auctionID);
+        } catch (Exception e) {
+            handleJoin(server, scanner);
+        }
+    }
+
+    private static String joinDoubleAuction(iSeller server, Scanner scanner, int auctionID)
+            throws NoSuchElementException {
+        try {
+            if (server.isSellersLimitReached(auctionID)) {
+                return "The limit of sellers has already been reached.";
+            } else {
+                int itemID = server.getItemIDofAuction(auctionID);
+                System.out.print("Enter the item's title: ");
+                String title = scanner.nextLine();
+                System.out.print("Enter the item's description: ");
+                String description = scanner.nextLine();
+                System.out.print("Enter the item's condition (1 New - 5 Broken): ");
+                int condition = Integer.parseInt(scanner.nextLine());
+                System.out.print("Enter the reserve price: ");
+                Double reservePrice = Double.parseDouble(scanner.nextLine().replace(",", "."));
+                System.out.print("Enter the selling price: ");
+                Double sellingPrice = Double.parseDouble(scanner.nextLine().replace(",", "."));
+                if (reservePrice > sellingPrice) {
+                    System.out.println("The given start price is higher than the acceptable price.");
+                    return joinDoubleAuction(server, scanner, auctionID);
+                }
+                server.addAuctionItem(auctionID,
+                        new AuctionItem(userInfo.getUsername(), itemID, title, description, condition, condition));
+                return "You have successfully joined the double auction.";
+            }
+        } catch (Exception e) {
+            return joinDoubleAuction(server, scanner, auctionID);
+        }
+    }
+
+    private static String addDoubleAuction(iSeller server, Scanner scanner) throws NoSuchElementException {
+        try {
+            System.out.println(
+                    "A double auction needs to be specified a number of sellers and number of bids(one per buyer).\n");
+            System.out.println(
+                    "The double auction will be visible to buyers once the specified number of sellers have joined it.\n");
+            System.out.println(
+                    "When the numebr of bids is reached the double auction will be closed. Then the results can be checked using ADD COMMAND HERE.\n");
+            System.out.print("\nEnter the double auction's items ID: ");
+            int itemID = Integer.parseInt(scanner.nextLine());
+            System.out.print("\nEnter the limit number of sellers: ");
+            int limitSellers = Integer.parseInt(scanner.nextLine());
+            System.out.print("\nEnter the limit number of bids: ");
+            int limitBids = Integer.parseInt(scanner.nextLine());
+            int auctionID = server.addDoubleAuction(itemID, limitSellers, limitBids);
+            System.out.println("Double auction successfully created.");
+            return joinDoubleAuction(server, scanner, auctionID);
+        } catch (Exception e) {
+            return addDoubleAuction(server, scanner);
         }
     }
 
@@ -137,10 +211,32 @@ public class SellerClient {
                 return;
             }
             int auctionID = Integer.parseInt(possibleExit);
-            System.out.println(server.closeAuction(userInfo, auctionID) + "\n");
+            String answer = server.closeAuction(userInfo, auctionID);
+            System.out.println(answer + "\n");
+            if (answer.contains("Do you want to grant the item to this bidder?")) {
+                closeBasicAuctionConfirmation(server, scanner, auctionID);
+                return;
+            }
         } catch (Exception e) {
             System.out.println("The formatting of the data was incorrect.");
             closeBasicAuction(server, scanner);
+        }
+    }
+
+    private static void closeBasicAuctionConfirmation(iSeller server, Scanner scanner, int auctionID)
+            throws NoSuchElementException {
+        try {
+            System.out.print("Types YES or NOT: ");
+            String possibleExit = scanner.nextLine();
+            if (possibleExit.toUpperCase().equals("YES")) {
+                System.out.println(server.closeAuctionConfirmation(auctionID, true));
+            } else {
+                System.out.println(server.closeAuctionConfirmation(auctionID, false));
+            }
+
+        } catch (Exception e) {
+            System.out.println("Please try again. Type YES, NOT or BACK.");
+            closeBasicAuctionConfirmation(server, scanner, auctionID);
         }
     }
 
@@ -170,6 +266,7 @@ public class SellerClient {
         System.out.println("SEE SELLABLE ITEMS\t| Displays the items which can be listed on the auction.");
         System.out.println("GET SPECIFICATIONS ITEMS| Displays the specs for all the items listed on auctions.");
         System.out.println("ADD BASIC AUCTION\t| Creates a new regular auction.");
+        System.out.println("ADD DOUBLE AUCTION\t| Creates a new double auction.");
         System.out.println("CHECK BASIC AUCTION\t| Checks the state of a regular auction.");
         System.out.println("CLOSE BASIC AUCTION\t| Closes an existing regular auction and prints the results.");
         System.out.println("---------------------------------------------------------------------------------------\n");

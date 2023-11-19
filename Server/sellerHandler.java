@@ -26,6 +26,11 @@ public class sellerHandler implements iSeller {
     }
 
     @Override
+    public String closeAuctionConfirmation(int auctionID, boolean isApproved) throws RemoteException {
+        return NormalAuctionManager.closeAuctionConfirmation(auctionID, isApproved);
+    }
+
+    @Override
     public String checkAuctionStatus(User user, int auctionID) throws RemoteException {
         return NormalAuctionManager.checkAuctionStatusSeller(user, auctionID);
     }
@@ -55,6 +60,26 @@ public class sellerHandler implements iSeller {
     @Override
     public boolean doesUsernameExist(String username) throws RemoteException {
         return UserManager.usernamePresent(username);
+    }
+
+    @Override
+    public int addDoubleAuction(int itemID, int limitSellers, int limitBids) {
+        return DoubleAuctionManager.addDoubleAuction(itemID, limitSellers, limitBids);
+    }
+
+    @Override
+    public void addAuctionItem(int doubleAuctionID, AuctionItem newItem) {
+        DoubleAuctionManager.addAuctionItem(doubleAuctionID, newItem);
+    }
+
+    @Override
+    public int getItemIDofAuction(int auctionID) {
+        return DoubleAuctionManager.getItemIDofAuction(auctionID);
+    }
+
+    @Override
+    public boolean isSellersLimitReached(int auctionID) {
+        return DoubleAuctionManager.isSellersLimitReached(auctionID);
     }
 
 }
