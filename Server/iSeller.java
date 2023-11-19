@@ -16,11 +16,16 @@ public interface iSeller extends iUser {
 
     public String getItemsReferenceID() throws RemoteException;
 
-    public int addDoubleAuction(int itemID, int limitSellers, int limitBids);
+    public int addDoubleAuction(int itemID, int limitSellers, int limitBids) throws RemoteException;
 
-    public void addAuctionItem(int doubleAuctionID, AuctionItem newItem);
+    public void addAuctionItem(int doubleAuctionID, AuctionItem newItem) throws RemoteException;
 
-    public int getItemIDofAuction(int auctionID);
+    public int getItemIDofAuction(int auctionID) throws RemoteException;
 
-    public boolean isSellersLimitReached(int auctionID);
+    public boolean isSellersLimitReached(int auctionID) throws RemoteException;
+
+    public String viewDoubleAuctions() throws RemoteException;
+
+    public boolean doubleAuctionExists(int auctionID) throws RemoteException;
+
 }

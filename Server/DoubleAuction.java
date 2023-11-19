@@ -16,7 +16,6 @@ public class DoubleAuction {
             numberBids = numberSellers;
         }
         listBids = new Bids[numberBids];
-
     }
 
     public boolean isSellersLimitReached() {
@@ -42,6 +41,26 @@ public class DoubleAuction {
 
     public int getLimitBids() {
         return listBids.length;
+    }
+
+    public int getCurrentNumberListings() {
+        int countEmpty = 0;
+        for (int i = 0; i < listItems.length; i++) {
+            if (listItems[i] != null) {
+                countEmpty++;
+            }
+        }
+        return countEmpty;
+    }
+
+    public int getCurrentNumberBids() {
+        int countEmpty = 0;
+        for (int i = 0; i < listBids.length; i++) {
+            if (listBids[i] != null) {
+                countEmpty++;
+            }
+        }
+        return countEmpty;
     }
 
     public int getLimitItems() {

@@ -13,4 +13,8 @@ public class ITEMS {
     public static HashMap<Integer, String> getItems() {
         return itemNames;
     }
+
+    public static String getNameOfItem(int itemID) {
+        return itemNames.get(itemID);
+    }
 }

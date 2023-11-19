@@ -31,6 +31,8 @@ public class SellerClient {
                     addBasicAuction(server, scanner);
                 } else if (command.equals("ADD DOUBLE AUCTION")) {
                     doubleActionHandler(server, scanner);
+                } else if (command.equals("VIEW DOUBLE AUCTIONS")) {
+                    viewDoubleAuctions(server);
                 } else if (command.equals("GET SPECIFICATIONS ITEMS")) {
                     getSpecsAuction(server, scanner);
                 } else if (command.equals("CLOSE BASIC AUCTION")) {
@@ -46,6 +48,10 @@ public class SellerClient {
         } catch (NoSuchElementException e) {
 
         }
+    }
+
+    private static void viewDoubleAuctions(iSeller server) throws RemoteException {
+        System.out.println(server.viewDoubleAuctions());
     }
 
     private static void displaySellableItems(iSeller server) {
@@ -128,23 +134,33 @@ public class SellerClient {
 
     private static void doubleActionHandler(iSeller server, Scanner scanner) {
         System.out.println("Do you want to join an existing double auction or create one?");
-        System.out.print("Type CREATE or JOIN:");
+        System.out.print("Type CREATE or JOIN: ");
         String decision = scanner.nextLine();
         if (decision.toUpperCase().equals("CREATE")) {
             System.out.println(addDoubleAuction(server, scanner));
         } else if (decision.toUpperCase().equals("JOIN")) {
-            handleJoin(server, scanner);
+            System.out.println(handleJoin(server, scanner));
+        } else {
+            doubleActionHandler(server, scanner);
         }
-        return;
     }
 
-    private static void handleJoin(iSeller server, Scanner scanner) {
+    private static String handleJoin(iSeller server, Scanner scanner) {
         try {
-            System.out.print("Enter the double auction's ID: ");
-            int auctionID = Integer.parseInt(scanner.nextLine());
-            joinDoubleAuction(server, scanner, auctionID);
+            System.out.print("\nEnter the double auction's ID: ");
+            String possibleExit = scanner.nextLine();
+            if (possibleExit.toUpperCase().equals("BACK")) {
+                return "";
+            }
+            int auctionID = Integer.parseInt(possibleExit);
+            if (server.doubleAuctionExists(auctionID)) {
+                return joinDoubleAuction(server, scanner, auctionID);
+            } else {
+                System.out.println("The given double auction ID does not exist.");
+                return handleJoin(server, scanner);
+            }
         } catch (Exception e) {
-            handleJoin(server, scanner);
+            return handleJoin(server, scanner);
         }
     }
 
@@ -161,19 +177,14 @@ public class SellerClient {
                 String description = scanner.nextLine();
                 System.out.print("Enter the item's condition (1 New - 5 Broken): ");
                 int condition = Integer.parseInt(scanner.nextLine());
-                System.out.print("Enter the reserve price: ");
-                Double reservePrice = Double.parseDouble(scanner.nextLine().replace(",", "."));
                 System.out.print("Enter the selling price: ");
                 Double sellingPrice = Double.parseDouble(scanner.nextLine().replace(",", "."));
-                if (reservePrice > sellingPrice) {
-                    System.out.println("The given start price is higher than the acceptable price.");
-                    return joinDoubleAuction(server, scanner, auctionID);
-                }
                 server.addAuctionItem(auctionID,
-                        new AuctionItem(userInfo.getUsername(), itemID, title, description, condition, condition));
+                        new AuctionItem(userInfo.getUsername(), itemID, title, description, condition, sellingPrice));
                 return "You have successfully joined the double auction.";
             }
         } catch (Exception e) {
+            System.out.println(e);
             return joinDoubleAuction(server, scanner, auctionID);
         }
     }
@@ -181,19 +192,19 @@ public class SellerClient {
     private static String addDoubleAuction(iSeller server, Scanner scanner) throws NoSuchElementException {
         try {
             System.out.println(
-                    "A double auction needs to be specified a number of sellers and number of bids(one per buyer).\n");
+                    "A double auction needs to be specified a number of sellers and number of bids(one per buyer).");
             System.out.println(
-                    "The double auction will be visible to buyers once the specified number of sellers have joined it.\n");
+                    "The double auction will be visible to buyers once the specified number of sellers have joined it.");
             System.out.println(
                     "When the numebr of bids is reached the double auction will be closed. Then the results can be checked using ADD COMMAND HERE.\n");
-            System.out.print("\nEnter the double auction's items ID: ");
+            System.out.print("Enter the double auction's items ID: ");
             int itemID = Integer.parseInt(scanner.nextLine());
-            System.out.print("\nEnter the limit number of sellers: ");
+            System.out.print("Enter the limit number of sellers: ");
             int limitSellers = Integer.parseInt(scanner.nextLine());
-            System.out.print("\nEnter the limit number of bids: ");
+            System.out.print("Enter the limit number of bids: ");
             int limitBids = Integer.parseInt(scanner.nextLine());
             int auctionID = server.addDoubleAuction(itemID, limitSellers, limitBids);
-            System.out.println("Double auction successfully created.");
+            System.out.println("Double auction #" + auctionID + " successfully created.");
             return joinDoubleAuction(server, scanner, auctionID);
         } catch (Exception e) {
             return addDoubleAuction(server, scanner);

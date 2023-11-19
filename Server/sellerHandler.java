@@ -82,4 +82,14 @@ public class sellerHandler implements iSeller {
         return DoubleAuctionManager.isSellersLimitReached(auctionID);
     }
 
+    @Override
+    public String viewDoubleAuctions() throws RemoteException {
+        return DoubleAuctionManager.viewDoubleAuctions();
+    }
+
+    @Override
+    public boolean doubleAuctionExists(int auctionID) throws RemoteException {
+        return DoubleAuctionManager.doubleAuctionExists(auctionID);
+    }
+
 }
