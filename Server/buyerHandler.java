@@ -4,7 +4,7 @@ import java.rmi.RemoteException;
 public class buyerHandler implements iBuyer {
 
     @Override
-    public Double bid(int auctionID, User user, Double bidAmount) throws RemoteException {
+    public Double normalAuctionBid(int auctionID, User user, Double bidAmount) throws RemoteException {
         return NormalAuctionManager.bid(auctionID, user, bidAmount);
     }
 
@@ -43,7 +43,21 @@ public class buyerHandler implements iBuyer {
     @Override
     public String viewReverseAuction(int itemID) throws RemoteException {
         return NormalAuctionManager.viewReverseAuction(itemID);
+    }
 
+    @Override
+    public String viewDoubleAuctions(User user) throws RemoteException {
+        return DoubleAuctionManager.viewDoubleAuctionsBuyers(user);
+    }
+
+    @Override
+    public boolean doubleAuctionBid(int auctionID, User user, double bidAmount) throws RemoteException {
+        return DoubleAuctionManager.bid(auctionID, user, bidAmount);
+    }
+
+    @Override
+    public String checkDoubleAuctionResolution(int auctionID, User user) throws RemoteException {
+        return DoubleAuctionManager.getResolutionBuyer(auctionID, user);
     }
 
 }

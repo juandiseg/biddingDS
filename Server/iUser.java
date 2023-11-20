@@ -8,4 +8,7 @@ public interface iUser extends Remote {
     public User signUp(String username, String email, String password) throws RemoteException;
 
     public boolean doesUsernameExist(String username) throws RemoteException;
+
+    public String checkDoubleAuctionResolution(int auctionID, User user) throws RemoteException;
+
 }

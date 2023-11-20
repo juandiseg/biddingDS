@@ -93,9 +93,9 @@ public class DoubleAuction {
                     tempLowest = j;
                 }
             }
-            Bids temp = listBids[i];
-            listBids[i] = listBids[tempLowest];
-            listBids[tempLowest] = temp;
+            AuctionItem temp = listItems[i];
+            listItems[i] = listItems[tempLowest];
+            listItems[tempLowest] = temp;
         }
     }
 
@@ -135,6 +135,73 @@ public class DoubleAuction {
             }
         }
         return false;
+    }
+
+    public double getUsersBid(User user) {
+        for (int i = 0; i < listBids.length; i++) {
+            if (listBids[i] != null) {
+                if (listBids[i].getUser().equals(user)) {
+                    return listBids[i].getBidAmount();
+                }
+            }
+        }
+        return -1;
+    }
+
+    public String getResolutionBuyer(User user) {
+        if (!auctionClosed) {
+            return "The double auction is not yet closed.";
+        }
+        int bidIndex = searchBuyerIndex(user);
+        if (bidIndex == -1) {
+            return "You didn't bid on the specified double auction.";
+        } else if (bidIndex > listItems.length - 1
+                || listBids[bidIndex].getBidAmount() < listItems[bidIndex].getSellingPrice()) {
+            return "Your bid didn't match an item.";
+        }
+        String retStr = "Your bid MATCHED an item!\n";
+        retStr = retStr.concat("Item specification:\n");
+        retStr = retStr.concat("Item\t| " + ITEMS.getNameOfItem(listItems[bidIndex].getItemId()) + "\n");
+        retStr = retStr.concat("Title\t| " + listItems[bidIndex].getItemTitle() + "\n");
+        retStr = retStr.concat("Descr.\t| " + listItems[bidIndex].getItemDescription() + "\n");
+        retStr = retStr.concat("State\t| " + listItems[bidIndex].getItemCondition() + "\n");
+        retStr = retStr.concat("The seller will SOON get in contact with you!");
+        return retStr;
+    }
+
+    public String getResolutionSeller(User user) {
+        if (!auctionClosed) {
+            return "The double auction is not yet closed.";
+        }
+        int itemIndex = searchSellerIndex(user);
+        if (itemIndex == -1) {
+            return "You didn't list an item on the specified double auction.";
+        } else if (listBids[itemIndex].getBidAmount() < listItems[itemIndex].getSellingPrice()) {
+            return "Your listing did NOT MATCH a bid that reached your selling price.";
+        }
+        String retStr = "Your listing MATCHED a bid!\n";
+        retStr = retStr.concat("The matching bid was for " + listBids[itemIndex].getBidAmount() + " EUR.\n");
+        retStr = retStr.concat("You can contact the seller (" + listBids[itemIndex].getUser().getUsername() + ") at: "
+                + listBids[itemIndex].getUser().getEmail() + "\n");
+        return retStr;
+    }
+
+    private int searchBuyerIndex(User user) {
+        for (int i = 0; i < listBids.length; i++) {
+            if (listBids[i].getUser().equals(user)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int searchSellerIndex(User user) {
+        for (int i = 0; i < listItems.length; i++) {
+            if (listItems[i].getSellerUsername().equals(user.getUsername())) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }

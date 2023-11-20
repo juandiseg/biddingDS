@@ -43,6 +43,8 @@ public class SellerClient {
                     printCommands();
                 } else if (command.equals("SEE SELLABLE ITEMS")) {
                     displaySellableItems(server);
+                } else if (command.equals("CHECK DOUBLE AUCTION")) {
+                    checkDoubleAuction(server, scanner);
                 }
             }
         } catch (NoSuchElementException e) {
@@ -51,7 +53,26 @@ public class SellerClient {
     }
 
     private static void viewDoubleAuctions(iSeller server) throws RemoteException {
-        System.out.println(server.viewDoubleAuctions());
+        System.out.println(server.viewDoubleAuctions(userInfo));
+    }
+
+    private static void checkDoubleAuction(iSeller server, Scanner scanner) throws RemoteException {
+        try {
+            System.out.print("Enter the double auction's ID you want to check for: ");
+            String possibleExit = scanner.nextLine();
+            if (possibleExit.toUpperCase().equals("BACK")) {
+                return;
+            } else if (possibleExit.toUpperCase().equals("HELP")) {
+                printCommands();
+                return;
+            }
+            int auctionID = Integer.parseInt(possibleExit);
+            System.out.println("\n" + server.checkDoubleAuctionResolution(auctionID, userInfo));
+        } catch (NumberFormatException e) {
+            System.out.println("The formatting of the auction's ID is incorrect.");
+            checkDoubleAuction(server, scanner);
+            return;
+        }
     }
 
     private static void displaySellableItems(iSeller server) {
@@ -278,7 +299,10 @@ public class SellerClient {
         System.out.println("GET SPECIFICATIONS ITEMS| Displays the specs for all the items listed on auctions.");
         System.out.println("ADD BASIC AUCTION\t| Creates a new regular auction.");
         System.out.println("ADD DOUBLE AUCTION\t| Creates a new double auction.");
+        System.out.println("VIEW DOUBLE AUCTIONS\t| Displays the open double auctions.");
         System.out.println("CHECK BASIC AUCTION\t| Checks the state of a regular auction.");
+        System.out.println(
+                "RESULTS DOUBLE AUCTION\t| Displays the resolution of a double auction you've an item listed in.");
         System.out.println("CLOSE BASIC AUCTION\t| Closes an existing regular auction and prints the results.");
         System.out.println("---------------------------------------------------------------------------------------\n");
     }

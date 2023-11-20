@@ -32,7 +32,7 @@ public class BuyerClient {
         int auctionID = Integer.parseInt(possibleExit);
         System.out.print("Enter your bid: ");
         Double bidAmount = Double.parseDouble(scanner.nextLine());
-        Double result = server.bid(auctionID, userInfo, bidAmount);
+        Double result = server.normalAuctionBid(auctionID, userInfo, bidAmount);
         if (result == 0.0)
             System.out.println("BID DENIED. The given auctionID doesn't exist.");
         else if (result == -1.0)
@@ -48,6 +48,35 @@ public class BuyerClient {
         return;
     }
 
+    private static void bidDoubleAuction(iBuyer server, Scanner scanner) throws RemoteException {
+        System.out.print("Enter the double auction's ID you want to BID for: ");
+        String possibleExit = scanner.nextLine();
+        if (possibleExit.toUpperCase().equals("BACK")) {
+            return;
+        } else if (possibleExit.toUpperCase().equals("HELP")) {
+            printCommands();
+            return;
+        }
+        int auctionID = Integer.parseInt(possibleExit);
+        System.out.print("Enter your bid: ");
+        Double bidAmount = Double.parseDouble(scanner.nextLine());
+        if (bidAmount <= 0) {
+            System.out.println("Please enter a bid greater than 0 EUR");
+            bidDoubleAuction(server, scanner);
+            return;
+        }
+        boolean result = server.doubleAuctionBid(auctionID, userInfo, bidAmount);
+        if (result) {
+            System.out.println("BID ACCEPTED!\n");
+        } else {
+            System.out.println("BID DENIED. There are two possible reasons: ");
+            System.out.println("\t-The double auction's ID does not exist.");
+            System.out.println("\t-The double auction is already closed.");
+            System.out.println("\t-You have already bidded in this double auction.");
+            System.out.println("Use the command \"VIEW DOUBLE AUCTIONS\" to check which of these conditions apply.");
+        }
+    }
+
     private static void handleRequests(iBuyer server, Scanner scanner) throws IOException {
         printCommands();
         boolean exit = false;
@@ -59,15 +88,17 @@ public class BuyerClient {
                 } else if (command.equals("VIEW REVERSE AUCTIONS")) {
                     viewReverseAuction(server, scanner);
                 } else if (command.equals("VIEW DOUBLE AUCTIONS")) {
-
+                    viewDoubleAuctions(server);
                 } else if (command.equals("CHECK BASIC AUCTION")) {
                     checkBasicAuction(server, scanner);
                 } else if (command.equals("BID BASIC AUCTION")) {
                     bidBasicAuction(server, scanner);
                 } else if (command.equals("BID DOUBLE AUCTION")) {
-
+                    bidDoubleAuction(server, scanner);
                 } else if (command.equals("SEE ITEMS")) {
                     viewItemsDisplay(server);
+                } else if (command.equals("CHECK DOUBLE AUCTION")) {
+                    checkDoubleAuction(server, scanner);
                 } else if (command.equals("HELP")) {
                     printCommands();
                 }
@@ -115,6 +146,25 @@ public class BuyerClient {
         }
     }
 
+    private static void checkDoubleAuction(iBuyer server, Scanner scanner) throws RemoteException {
+        try {
+            System.out.print("Enter the double auction's ID you want to check for: ");
+            String possibleExit = scanner.nextLine();
+            if (possibleExit.toUpperCase().equals("BACK")) {
+                return;
+            } else if (possibleExit.toUpperCase().equals("HELP")) {
+                printCommands();
+                return;
+            }
+            int auctionID = Integer.parseInt(possibleExit);
+            System.out.println("\n" + server.checkDoubleAuctionResolution(auctionID, userInfo));
+        } catch (NumberFormatException e) {
+            System.out.println("The formatting of the auction's ID is incorrect.");
+            checkDoubleAuction(server, scanner);
+            return;
+        }
+    }
+
     private static void viewBasicAuction(iBuyer server, Scanner scanner) throws RemoteException {
         try {
             System.out.println("Do you want to search auctions for an specific item?");
@@ -138,6 +188,10 @@ public class BuyerClient {
         }
     }
 
+    private static void viewDoubleAuctions(iBuyer server) throws RemoteException {
+        System.out.println("\n" + server.viewDoubleAuctions(userInfo));
+    }
+
     private static void viewItemsDisplay(iBuyer server) throws RemoteException {
         System.out.println("\n" + server.getItemsDisplay());
     }
@@ -152,6 +206,7 @@ public class BuyerClient {
         System.out.println("VIEW DOUBLE AUCTIONS\t| Displays the currently open double auctions.");
         System.out.println("BID BASIC AUCTION\t| Allows bidding on a basic auction.");
         System.out.println("BID DOUBLE AUCTION\t| Allows bidding on a double auctoin.");
+        System.out.println("CHECK DOUBLE AUCTION\t| Displays the resolution of a double auction you've bid in.");
         System.out.println("SEE ITEMS\t\t| Displays items foundable on open auctions.");
         System.out.println("---------------------------------------------------------------------------------------\n");
     }
@@ -195,7 +250,7 @@ public class BuyerClient {
             String password = scanner.nextLine();
             User user = server.signUp(username, email, password);
             if (user == null) {
-                System.out.print("The given username is already taken.");
+                System.out.print("The given username/email is already taken.");
             } else {
                 return user;
             }

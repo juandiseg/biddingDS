@@ -24,7 +24,7 @@ public interface iSeller extends iUser {
 
     public boolean isSellersLimitReached(int auctionID) throws RemoteException;
 
-    public String viewDoubleAuctions() throws RemoteException;
+    public String viewDoubleAuctions(User user) throws RemoteException;
 
     public boolean doubleAuctionExists(int auctionID) throws RemoteException;
 

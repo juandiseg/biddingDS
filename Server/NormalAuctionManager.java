@@ -89,7 +89,8 @@ public class NormalAuctionManager {
             return status;
         }
         if (winningUsername.equals(user.getUsername())) {
-            status = status.concat("You were the winning bid, with a " + winningBid + "EUR bid.");
+            status = status.concat("You were the winning bid, with a " + winningBid
+                    + "EUR bid. The seller will soon get in contact with you.");
         } else {
             status = status.concat("Someone else won the bid with a " + winningBid + "EUR bid.");
         }

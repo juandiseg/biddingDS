@@ -83,13 +83,18 @@ public class sellerHandler implements iSeller {
     }
 
     @Override
-    public String viewDoubleAuctions() throws RemoteException {
-        return DoubleAuctionManager.viewDoubleAuctions();
+    public String viewDoubleAuctions(User user) throws RemoteException {
+        return DoubleAuctionManager.viewDoubleAuctionsSellers(user);
     }
 
     @Override
     public boolean doubleAuctionExists(int auctionID) throws RemoteException {
         return DoubleAuctionManager.doubleAuctionExists(auctionID);
+    }
+
+    @Override
+    public String checkDoubleAuctionResolution(int auctionID, User user) throws RemoteException {
+        return DoubleAuctionManager.getResolutionSeller(auctionID, user);
     }
 
 }
