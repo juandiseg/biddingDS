@@ -1,5 +1,6 @@
 
 import java.rmi.RemoteException;
+import java.security.cert.Certificate;
 import java.rmi.Remote;
 
 public interface iUser extends Remote {
@@ -10,5 +11,9 @@ public interface iUser extends Remote {
     public boolean doesUsernameExist(String username) throws RemoteException;
 
     public String checkDoubleAuctionResolution(int auctionID, User user) throws RemoteException;
+
+    public byte[] signDocument(byte[] dataToSign) throws Exception;
+
+    public Certificate exportCertificate() throws Exception;
 
 }

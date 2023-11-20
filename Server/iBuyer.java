@@ -1,9 +1,10 @@
 
+import java.io.FileInputStream;
 import java.rmi.RemoteException;
+import java.security.cert.Certificate;
 
 public interface iBuyer extends iUser {
 
-    // public interface iBuyer extends Remote {
     public Double normalAuctionBid(int auctionID, User user, Double bidAmount) throws RemoteException;
 
     public String getAuctionsDisplay(int itemID) throws RemoteException;

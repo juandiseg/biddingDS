@@ -1,5 +1,6 @@
 
 import java.rmi.RemoteException;
+import java.security.cert.Certificate;
 import java.util.HashMap;
 
 public class sellerHandler implements iSeller {
@@ -95,6 +96,16 @@ public class sellerHandler implements iSeller {
     @Override
     public String checkDoubleAuctionResolution(int auctionID, User user) throws RemoteException {
         return DoubleAuctionManager.getResolutionSeller(auctionID, user);
+    }
+
+    @Override
+    public byte[] signDocument(byte[] dataToSign) throws Exception {
+        return KeyManager.signFile(dataToSign);
+    }
+
+    @Override
+    public Certificate exportCertificate() throws Exception {
+        return KeyManager.exportCertificate();
     }
 
 }

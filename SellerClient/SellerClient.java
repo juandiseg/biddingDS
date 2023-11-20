@@ -1,7 +1,12 @@
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -45,10 +50,24 @@ public class SellerClient {
                     displaySellableItems(server);
                 } else if (command.equals("CHECK DOUBLE AUCTION")) {
                     checkDoubleAuction(server, scanner);
+                } else if (command.equals("CHECK SIGNATURE")) {
+                    checkSignature(server);
                 }
             }
         } catch (NoSuchElementException e) {
 
+        }
+    }
+
+    private static void checkSignature(iSeller server) {
+        try {
+            if (checkSignature(server, signDocument(server))) {
+                System.out.println("The signature is RELIABLE.\n");
+            } else {
+                System.out.println("The signature is NOT RELIABLE.\n");
+            }
+        } catch (Exception e) {
+            System.out.println("The signature is NOT RELIABLE.\n");
         }
     }
 
@@ -304,7 +323,36 @@ public class SellerClient {
         System.out.println(
                 "RESULTS DOUBLE AUCTION\t| Displays the resolution of a double auction you've an item listed in.");
         System.out.println("CLOSE BASIC AUCTION\t| Closes an existing regular auction and prints the results.");
+        System.out.println("CHECK SIGNATURE\t\t| Tests whether the server's signature has been tampered.");
         System.out.println("---------------------------------------------------------------------------------------\n");
+    }
+
+    private static byte[] signDocument(iSeller server) throws Exception {
+        File dummyFile = new File("keyCertification\\dummyFile.txt");
+        byte[] fileContent = Files.readAllBytes(dummyFile.toPath());
+        return server.signDocument(fileContent);
+    }
+
+    private static Boolean checkSignature(iSeller server, byte[] signedDoc) throws Exception {
+        Certificate theCert = server.exportCertificate();
+        PublicKey pubKey = theCert.getPublicKey();
+        byte[] sigToVerify = signedDoc;
+        // tamperSignature(sigToVerify);
+        File dummyFile = new File("keyCertification\\dummyFile.txt");
+        byte[] fileContent = Files.readAllBytes(dummyFile.toPath());
+        Signature sig = Signature.getInstance("SHA256WithRSA");
+        sig.initVerify(pubKey);
+        sig.update(fileContent, 0, fileContent.length);
+        return sig.verify(sigToVerify);
+    }
+
+    private static void tamperSignature(byte[] sigToVerify) {
+        sigToVerify[1] = sigToVerify[5];
+        sigToVerify[2] = sigToVerify[5];
+        sigToVerify[3] = sigToVerify[5];
+        sigToVerify[4] = sigToVerify[5];
+        sigToVerify[6] = sigToVerify[5];
+        sigToVerify[5] = sigToVerify[9];
     }
 
     private static User getUserInfo(iSeller server, Scanner scanner) throws IOException {
