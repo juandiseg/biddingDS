@@ -110,7 +110,7 @@ public class NormalAuctionManager {
                 reverseAuctions = reverseAuctions
                         .concat("Item condition\t\t|" + listAuctions[i].getItem().getItemCondition() + "\n");
                 reverseAuctions = reverseAuctions
-                        .concat("Highest bid\t\t|" + listAuctions[i].getWinningBidAmount() + " EUR.\n\n");
+                        .concat("Highest bid\t\t|" + listAuctions[i].getLowestPrice() + " EUR.\n\n");
             }
         }
         return reverseAuctions;
