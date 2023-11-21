@@ -101,15 +101,17 @@ public class NormalAuctionManager {
         NormalAuction[] listAuctions = getLowestbids(itemID, 3);
         String reverseAuctions = "Three auctions with the currently lowest bids for the item #" + itemID + ":\n\n";
         for (int i = 0; i < listAuctions.length; i++) {
-            reverseAuctions = reverseAuctions.concat("Auction ID #" + listAuctions[i].getAuctionID() + ": \n");
-            reverseAuctions = reverseAuctions
-                    .concat("Item title\t\t|" + listAuctions[i].getItem().getItemTitle() + "\n");
-            reverseAuctions = reverseAuctions
-                    .concat("Item description\t\t|" + listAuctions[i].getItem().getItemDescription() + "\n");
-            reverseAuctions = reverseAuctions
-                    .concat("Item condition\t\t|" + listAuctions[i].getItem().getItemCondition() + "\n");
-            reverseAuctions = reverseAuctions
-                    .concat("Highest bid\t\t|" + listAuctions[i].getWinningBidAmount() + " EUR.\n\n");
+            if (listAuctions[i] != null) {
+                reverseAuctions = reverseAuctions.concat("Auction ID #" + listAuctions[i].getAuctionID() + ": \n");
+                reverseAuctions = reverseAuctions
+                        .concat("Item title\t\t|" + listAuctions[i].getItem().getItemTitle() + "\n");
+                reverseAuctions = reverseAuctions
+                        .concat("Item description\t|" + listAuctions[i].getItem().getItemDescription() + "\n");
+                reverseAuctions = reverseAuctions
+                        .concat("Item condition\t\t|" + listAuctions[i].getItem().getItemCondition() + "\n");
+                reverseAuctions = reverseAuctions
+                        .concat("Highest bid\t\t|" + listAuctions[i].getWinningBidAmount() + " EUR.\n\n");
+            }
         }
         return reverseAuctions;
     }
@@ -134,12 +136,14 @@ public class NormalAuctionManager {
         for (int i = 0; i < listAuctions.length - 1; i++) {
             int tempHighest = i;
             for (int j = i; j < listAuctions.length; j++) {
-                if (listAuctions[i].getWinningBidAmount() < listAuctions[j].getWinningBidAmount()) {
-                    if (listAuctions[tempHighest].getWinningBidAmount() < listAuctions[j].getWinningBidAmount()) {
+                if (listAuctions[j] != null) {
+                    if (listAuctions[tempHighest].getLowestPrice() < listAuctions[j].getLowestPrice()) {
                         tempHighest = j;
                     }
-
                 }
+                // if (listAuctions[i].getLowestPrice() < listAuctions[j].getLowestPrice()) {
+
+                // }
             }
             NormalAuction temp = listAuctions[i];
             listAuctions[i] = listAuctions[tempHighest];
@@ -157,11 +161,11 @@ public class NormalAuctionManager {
         int highest = 0;
 
         for (int i = 1; i < listAuctions.length; i++) {
-            if (listAuctions[highest].getWinningBidAmount() < listAuctions[i].getWinningBidAmount()) {
+            if (listAuctions[highest].getLowestPrice() < listAuctions[i].getLowestPrice()) {
                 highest = i;
             }
         }
-        if (listAuctions[highest].getWinningBidAmount() > temp.getWinningBidAmount()) {
+        if (listAuctions[highest].getLowestPrice() > temp.getLowestPrice()) {
             listAuctions[highest] = temp;
         }
     }

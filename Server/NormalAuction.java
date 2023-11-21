@@ -46,6 +46,15 @@ public class NormalAuction {
         return sellingPrice;
     }
 
+    public Double getLowestPrice() {
+        Double winningBid = getWinningBidAmount();
+        if (winningBid == -1) {
+            return 0.0;
+        } else {
+            return winningBid;
+        }
+    }
+
     public int getNumberOfBids() {
         return listBids.size();
     }
