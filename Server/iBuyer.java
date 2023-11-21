@@ -1,7 +1,5 @@
 
-import java.io.FileInputStream;
 import java.rmi.RemoteException;
-import java.security.cert.Certificate;
 
 public interface iBuyer extends iUser {
 
