@@ -30,7 +30,7 @@ public class UserManager {
         return users.get(username) != null;
     }
 
-    public static char validateUserByUsername(String username, String password) {
+    public static char validateUser(String username, String password) {
         User temp = users.get(username);
         if (temp != null && temp.getPassword().equals(password)) {
             return temp.getUserType();
@@ -41,17 +41,6 @@ public class UserManager {
     public static boolean validateUser(User user, char type) {
         User temp = users.get(user.getUsername());
         return user.equals(temp) && user.getUserType() == type;
-    }
-
-    public static char validateUserByEmail(String email, String password) {
-        User tempUser = null;
-        for (String tempKey : users.keySet()) {
-            tempUser = users.get(tempKey);
-            if (tempUser.getEmail().equals(email) && tempUser.getPassword().equals(password)) {
-                return tempUser.getUserType();
-            }
-        }
-        return 'E';
     }
 
 }

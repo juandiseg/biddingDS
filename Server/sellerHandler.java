@@ -13,9 +13,6 @@ public class sellerHandler implements iSeller {
     @Override
     public int createAuction(String sellerUsername, int itemID, String itemTitle, String itemDescription,
             int itemCondition, Double reservePrice, Double sellingPrice) throws RemoteException {
-        if (NormalAuctionManager.getAvailableItems().get(itemID) == null) {
-            return -1;
-        }
         return NormalAuctionManager.addAuction(
                 new AuctionItem(sellerUsername, itemID, itemTitle, itemDescription, itemCondition, sellingPrice),
                 reservePrice);
@@ -38,17 +35,12 @@ public class sellerHandler implements iSeller {
 
     @Override
     public String getItemsReferenceID() throws RemoteException {
-        HashMap<Integer, String> items = NormalAuctionManager.getAvailableItems();
-        String text = "";
-        for (int i = 1; i < items.size() + 1; i++) {
-            text = text.concat("The item #" + i + " references the product: \"" + items.get(i) + "\".\n");
-        }
-        return text;
+        return NormalAuctionManager.getAvailableItems();
     }
 
     @Override
     public User logInUsername(String username, String password) throws RemoteException {
-        if (UserManager.validateUserByUsername(username, password) == 'S')
+        if (UserManager.validateUser(username, password) == 'S')
             return UserManager.getUser(username);
         return null;
     }

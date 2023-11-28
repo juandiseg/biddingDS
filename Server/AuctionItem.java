@@ -1,8 +1,7 @@
 
 public class AuctionItem implements java.io.Serializable {
 
-    private final String sellerUsername;
-    private boolean auctionClosed = false;
+    private final User seller;
     private int itemId;
     private String itemTitle;
     private String itemDescription;
@@ -11,7 +10,7 @@ public class AuctionItem implements java.io.Serializable {
 
     public AuctionItem(String sellerUsername, int itemId, String itemTitle, String itemDescription, int itemCondition,
             double sellingPrice) {
-        this.sellerUsername = sellerUsername;
+        this.seller = UserManager.getUser(sellerUsername);
         this.itemId = itemId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
@@ -27,14 +26,6 @@ public class AuctionItem implements java.io.Serializable {
         return itemId;
     }
 
-    public void closeAuction() {
-        auctionClosed = true;
-    }
-
-    public boolean isAuctionClosed() {
-        return auctionClosed;
-    }
-
     public String getItemTitle() {
         return itemTitle;
     }
@@ -47,8 +38,8 @@ public class AuctionItem implements java.io.Serializable {
         return itemDescription;
     }
 
-    public String getSellerUsername() {
-        return sellerUsername;
+    public User getSeller() {
+        return seller;
     }
 
     public String getItemCondition() {

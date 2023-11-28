@@ -15,7 +15,9 @@ public class DoubleAuctionManager {
     }
 
     public static int addDoubleAuction(int itemID, int limitSellers, int limitBids) {
-        // if(checkItemID) return false;
+        if (itemReferenceExists(itemID)) {
+            return -1;
+        }
         lastAuctionID++;
         DoubleAuction temp = new DoubleAuction(lastAuctionID, lastAuctionID, limitSellers, limitBids);
         availableDoubleAuctions.get(hashFunction(lastAuctionID)).add(temp);
@@ -26,55 +28,24 @@ public class DoubleAuctionManager {
         String returnStr = "";
         for (int i = 1; i < 5; i++) {
             for (DoubleAuction temp : availableDoubleAuctions.get(i)) {
-                if (temp.isAuctionClosed()) {
-                    returnStr = returnStr
-                            .concat("\nDouble Auction ID #" + temp.getDoubleAuctionID() + " is closed and resolved.\n");
-                    returnStr = returnStr
-                            .concat(temp.getResolutionSeller(user));
-                } else {
-                    returnStr = returnStr.concat("\nDouble Auction ID #" + temp.getDoubleAuctionID() + "\n");
-                    returnStr = returnStr.concat(
-                            "Item on sale\t| " + temp.getItemID() + " (" + ITEMS.getNameOfItem(temp.getItemID())
-                                    + ")\n");
-                    returnStr = returnStr.concat("Limit sellers\t| " + temp.getLimitItems() + " ("
-                            + temp.getCurrentNumberListings() + ") \n");
-                    returnStr = returnStr.concat(
-                            "Limit bids\t| " + temp.getLimitBids() + " (" + temp.getCurrentNumberBids() + ") \n");
-                    returnStr = returnStr.concat("------------------------------------------------\n");
-                }
+                returnStr = returnStr.concat(temp.checkAuctionStatusSeller(user));
             }
         }
+        if (returnStr.equals("")) {
+            return "There are not any available double auctions.";
+        }
         return returnStr;
+    }
+
+    private static boolean itemReferenceExists(int itemID) {
+        return ITEMS.getItems().get(itemID) != null;
     }
 
     public static String viewDoubleAuctionsBuyers(User user) {
         String returnStr = "";
         for (int i = 1; i < 5; i++) {
             for (DoubleAuction temp : availableDoubleAuctions.get(i)) {
-                if (temp.getLimitItems() == temp.getCurrentNumberListings()) {
-                    if (temp.isAuctionClosed()) {
-                        returnStr = returnStr
-                                .concat("\nDouble Auction ID #" + temp.getDoubleAuctionID()
-                                        + " is closed and resolved.\n");
-                        returnStr = returnStr
-                                .concat(temp.getResolutionBuyer(user));
-                    } else {
-                        returnStr = returnStr.concat("\nDouble Auction ID #" + temp.getDoubleAuctionID() + "\n");
-                        returnStr = returnStr.concat(
-                                "Item on sale\t| " + temp.getItemID() + " (" + ITEMS.getNameOfItem(temp.getItemID())
-                                        + ")\n");
-                        returnStr = returnStr.concat("Limit sellers\t| " + temp.getLimitItems() + " ("
-                                + temp.getCurrentNumberListings() + ") \n");
-                        returnStr = returnStr.concat(
-                                "Limit bids\t| " + temp.getLimitBids() + " (" + temp.getCurrentNumberBids() + ") \n");
-                        double userBid = temp.getUsersBid(user);
-                        if (userBid != -1) {
-                            returnStr = returnStr
-                                    .concat("You have a bid in this double auction for " + userBid + " EUR.\n");
-                        }
-                        returnStr = returnStr.concat("------------------------------------------------\n");
-                    }
-                }
+                returnStr = returnStr.concat(temp.checkDoubleAuctionBuyer(user));
             }
         }
         if (returnStr.equals("")) {

@@ -26,7 +26,7 @@ public class buyerHandler implements iBuyer {
 
     @Override
     public User logInUsername(String username, String password) throws RemoteException {
-        if (UserManager.validateUserByUsername(username, password) == 'B')
+        if (UserManager.validateUser(username, password) == 'B')
             return UserManager.getUser(username);
         return null;
     }

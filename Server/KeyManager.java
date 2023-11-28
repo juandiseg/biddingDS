@@ -31,7 +31,7 @@ public class KeyManager {
 
     public static Certificate exportCertificate() throws Exception {
         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        trustStore.load(null);// Make an empty store
+        trustStore.load(null);
 
         BufferedInputStream bis = new BufferedInputStream(
                 new FileInputStream(new File("keys\\sender_certificate.cer")));

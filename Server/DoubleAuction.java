@@ -18,6 +18,42 @@ public class DoubleAuction {
         listBids = new Bids[numberBids];
     }
 
+    public String checkDoubleAuctionBuyer(User user) {
+        if (isLimitItemsReached()) {
+            if (auctionClosed) {
+                String status = ("\nDouble Auction ID #" + getDoubleAuctionID() + " is closed and resolved.\n");
+                return status.concat(getResolutionBuyer(user));
+            } else {
+                String status = "\nDouble Auction ID #" + getDoubleAuctionID() + "\n";
+                status = status
+                        .concat("Item on sale\t| " + getItemID() + " (" + ITEMS.getNameOfItem(getItemID()) + ")\n");
+                status = status
+                        .concat("Limit sellers\t| " + getLimitItems() + " (" + getCurrentNmbrListings() + ") \n");
+                status = status.concat("Limit bids\t| " + getLimitBids() + " (" + getCurrentNumberBids() + ") \n");
+                double userBid = getUsersBid(user);
+                if (userBid != -1) {
+                    status = status
+                            .concat("You have a bid in this double auction for " + userBid + " EUR.\n");
+                }
+                return status.concat("------------------------------------------------\n");
+            }
+        }
+        return "";
+    }
+
+    public String checkAuctionStatusSeller(User user) {
+        if (auctionClosed) {
+            String status = "\nDouble Auction ID #" + getDoubleAuctionID() + " is closed and resolved.\n";
+            return status.concat(getResolutionSeller(user));
+        } else {
+            String status = "\nDouble Auction ID #" + getDoubleAuctionID() + "\n";
+            status = status.concat("Listed item\t| " + getItemID() + " (" + ITEMS.getNameOfItem(getItemID()) + ")\n");
+            status = status.concat("Limit sellers\t| " + getLimitItems() + " (" + getCurrentNmbrListings() + ") \n");
+            status = status.concat("Limit bids\t| " + getLimitBids() + " (" + getCurrentNumberBids() + ") \n");
+            return status;
+        }
+    }
+
     public boolean isSellersLimitReached() {
         return allItemsListed;
     }
@@ -26,24 +62,11 @@ public class DoubleAuction {
         return doubleAuctionID;
     }
 
-    public boolean isAuctionClosed() {
-        return auctionClosed;
-    }
-
-    public boolean isSellerAuctioning(String sellerUsername) {
-        for (int i = 0; i < listItems.length; i++) {
-            if (listItems[i].getSellerUsername().equals(sellerUsername)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public int getLimitBids() {
         return listBids.length;
     }
 
-    public int getCurrentNumberListings() {
+    public int getCurrentNmbrListings() {
         int countEmpty = 0;
         for (int i = 0; i < listItems.length; i++) {
             if (listItems[i] != null) {
@@ -51,6 +74,10 @@ public class DoubleAuction {
             }
         }
         return countEmpty;
+    }
+
+    private boolean isLimitItemsReached() {
+        return getLimitItems() == getCurrentNmbrListings();
     }
 
     public int getCurrentNumberBids() {
@@ -197,7 +224,7 @@ public class DoubleAuction {
 
     private int searchSellerIndex(User user) {
         for (int i = 0; i < listItems.length; i++) {
-            if (listItems[i].getSellerUsername().equals(user.getUsername())) {
+            if (listItems[i].getSeller().equals(user)) {
                 return i;
             }
         }
