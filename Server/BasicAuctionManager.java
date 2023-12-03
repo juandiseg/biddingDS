@@ -8,7 +8,6 @@ public class BasicAuctionManager {
 
     private final static Double DOESNT_EXIST = 0.0;
     private final static Double AUCTION_CLOSED = -4.0;
-
     private static int lastAuctionID = 0;
     private static Hashtable<Integer, LinkedList<BasicAuction>> availableAuctions = new Hashtable<>();
     static {
@@ -44,8 +43,8 @@ public class BasicAuctionManager {
     }
 
     public static String getReversedBasicAuctionsDisplay(int itemID) {
-        BasicAuction[] listAuctions = getLowestbids(itemID, 3);
-        String reverseAuctions = "Three auctions with the currently lowest bids for the item #" + itemID + ":\n\n";
+        BasicAuction[] listAuctions = getLowestbids(itemID, 5);
+        String reverseAuctions = "Five auctions with the currently lowest bids for the item #" + itemID + ":\n\n";
         for (int i = 0; i < listAuctions.length; i++) {
             if (listAuctions[i] != null) {
                 reverseAuctions = reverseAuctions.concat(listAuctions[i].generateDisplay());
@@ -192,7 +191,7 @@ public class BasicAuctionManager {
         return "You don't have access to this editting this auction.";
     }
 
-    public static String closeBasicAuctionAndApproveWinner(int auctionID, boolean isApproved) {
+    public static String closeAndApproveWinner(int auctionID, boolean isApproved) {
         BasicAuction theAuction = getAuction(auctionID);
         if (isApproved) {
             theAuction.setWinnerApproved(true);

@@ -24,7 +24,7 @@ public class sellerProxy implements iSeller {
 
     @Override
     public String closeBasicAuctionAndApproveWinner(int auctionID, boolean isApproved) throws RemoteException {
-        return BasicAuctionManager.closeBasicAuctionAndApproveWinner(auctionID, isApproved);
+        return BasicAuctionManager.closeAndApproveWinner(auctionID, isApproved);
     }
 
     @Override
