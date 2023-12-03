@@ -1,4 +1,3 @@
-
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.stream.Collectors;
@@ -14,7 +13,7 @@ public class DoubleAuctionManager {
         availableDoubleAuctions.put(4, new LinkedList<DoubleAuction>());
     }
 
-    public static int addDoubleAuction(int itemID, int limitSellers, int limitBids) {
+    public static int createDoubleAuction(int itemID, int limitSellers, int limitBids) {
         if (itemReferenceExists(itemID)) {
             return -1;
         }
@@ -24,7 +23,7 @@ public class DoubleAuctionManager {
         return lastAuctionID;
     }
 
-    public static String viewDoubleAuctionsSellers(User user) {
+    public static String getDoubleAuctionsDisplaySellers(User user) {
         String returnStr = "";
         for (int i = 1; i < 5; i++) {
             for (DoubleAuction temp : availableDoubleAuctions.get(i)) {
@@ -41,7 +40,7 @@ public class DoubleAuctionManager {
         return ITEMS.getItems().get(itemID) != null;
     }
 
-    public static String viewDoubleAuctionsBuyers(User user) {
+    public static String getDoubleAuctionsDisplayBuyers(User user) {
         String returnStr = "";
         for (int i = 1; i < 5; i++) {
             for (DoubleAuction temp : availableDoubleAuctions.get(i)) {
@@ -58,13 +57,13 @@ public class DoubleAuctionManager {
         return auctionID % 4 + 1;
     }
 
-    public static int getItemIDofAuction(int auctionID) {
+    public static int getDoubleAuctionsItemID(int auctionID) {
         return getDoubleAuction(auctionID).getItemID();
     }
 
-    public static void addAuctionItem(int doubleAuctionID, AuctionItem newItem) {
+    public static void joinDoubleAuction(int doubleAuctionID, AuctionItem newItem) {
         DoubleAuction doubleAuction = getDoubleAuction(doubleAuctionID);
-        doubleAuction.addAuction(newItem);
+        doubleAuction.join(newItem);
     }
 
     private static DoubleAuction getDoubleAuction(int doubleAuctionID) {
@@ -72,13 +71,13 @@ public class DoubleAuctionManager {
                 .filter(temp -> (temp.getDoubleAuctionID() == doubleAuctionID)).collect(Collectors.toList()).get(0);
     }
 
-    public static boolean doubleAuctionExists(int doubleAuctionID) {
+    public static boolean doesDoubleAuctionExists(int doubleAuctionID) {
         return availableDoubleAuctions.get(hashFunction(doubleAuctionID)).stream()
                 .anyMatch(temp -> (temp.getDoubleAuctionID() == doubleAuctionID));
     }
 
     public static boolean bid(int doubleAuctionID, User user, Double biddingAmount) {
-        if (doubleAuctionExists(doubleAuctionID)) {
+        if (doesDoubleAuctionExists(doubleAuctionID)) {
             DoubleAuction theAuction = getDoubleAuction(doubleAuctionID);
             return theAuction.addBid(user, biddingAmount);
         }
@@ -91,14 +90,14 @@ public class DoubleAuctionManager {
     }
 
     public static String getResolutionBuyer(int auctionID, User user) {
-        if (!doubleAuctionExists(auctionID)) {
+        if (!doesDoubleAuctionExists(auctionID)) {
             return "The given double auction ID does not exist.";
         }
         return getDoubleAuction(auctionID).getResolutionBuyer(user);
     }
 
     public static String getResolutionSeller(int auctionID, User user) {
-        if (!doubleAuctionExists(auctionID)) {
+        if (!doesDoubleAuctionExists(auctionID)) {
             return "The given double auction ID does not exist.";
         }
         return getDoubleAuction(auctionID).getResolutionSeller(user);

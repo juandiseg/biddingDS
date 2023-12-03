@@ -58,7 +58,7 @@ public class UserLogInHandlerSeller {
             System.out.print("\nEnter Password: ");
             String password = scanner.nextLine();
 
-            User user = server.logInUsername(username, password);
+            User user = server.logIn(username, password);
             if (user == null) {
                 System.out.println("The given details aren't valid.");
             } else {

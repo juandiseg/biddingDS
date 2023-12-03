@@ -14,7 +14,7 @@ public class ITEMS {
         return itemNames;
     }
 
-    public static String getItemsText() {
+    public static String getDisplayAvailable() {
         String text = "";
         for (int i = 1; i < itemNames.size() + 1; i++) {
             text = text.concat("The item #" + i + " references the product: \"" + itemNames.get(i) + "\".\n");

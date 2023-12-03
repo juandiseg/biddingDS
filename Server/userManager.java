@@ -4,7 +4,7 @@ import java.util.HashMap;
 public class UserManager {
     private static HashMap<String, User> users = new HashMap<>();
 
-    public static User addUser(String username, String email, String password, char userType) {
+    public static User signUp(String username, String email, String password, char userType) {
         User temp = new User(username, email, password, userType);
         if (emailTaken(email) || users.get(username) != null) {
             return null;
@@ -26,21 +26,22 @@ public class UserManager {
         return users.get(username);
     }
 
-    public static boolean usernamePresent(String username) {
+    public static boolean doesUsernameExist(String username) {
         return users.get(username) != null;
     }
 
-    public static char validateUser(String username, String password) {
+    public static User logIn(String username, String password, char type) {
+        if (UserManager.validateCredentials(username, password) == 'B')
+            return UserManager.getUser(username);
+        return null;
+    }
+
+    private static char validateCredentials(String username, String password) {
         User temp = users.get(username);
         if (temp != null && temp.getPassword().equals(password)) {
             return temp.getUserType();
         }
         return 'E';
-    }
-
-    public static boolean validateUser(User user, char type) {
-        User temp = users.get(user.getUsername());
-        return user.equals(temp) && user.getUserType() == type;
     }
 
 }

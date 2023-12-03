@@ -132,7 +132,7 @@ public class DoubleAuction {
         auctionClosed = true;
     }
 
-    public void addAuction(AuctionItem auctionItem) {
+    public void join(AuctionItem auctionItem) {
         lastItemIndex++;
         listItems[lastItemIndex] = auctionItem;
         if (lastItemIndex == listItems.length - 1) {

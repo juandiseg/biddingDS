@@ -33,11 +33,11 @@ public class BasicAuctionHandlerBuyer {
                 UtilityHandlerBuyer.printCommands();
                 return;
             } else if (possibleExit.toUpperCase().equals("NOT")) {
-                System.out.println("\n" + server.getAuctionsDisplay(-1));
+                System.out.println("\n" + server.getBasicAuctionsDisplay(-1));
                 return;
             }
             int itemID = Integer.parseInt(possibleExit);
-            System.out.println("\n" + server.getAuctionsDisplay(itemID));
+            System.out.println("\n" + server.getBasicAuctionsDisplay(itemID));
             return;
         } catch (Exception e) {
             System.out.println("The formatting of the data was incorrect.");
@@ -56,7 +56,7 @@ public class BasicAuctionHandlerBuyer {
                 return;
             }
             int auctionID = Integer.parseInt(possibleExit);
-            System.out.println("\n" + server.checkAuctionStatus(userInfo, auctionID));
+            System.out.println("\n" + server.getBasicAuctionStatus(userInfo, auctionID));
         } catch (NumberFormatException e) {
             System.out.println("The formatting of the data was incorrect.");
             checkBasicAuction(server, scanner, userInfo);
@@ -103,7 +103,7 @@ public class BasicAuctionHandlerBuyer {
                 return;
             }
             int itemID = Integer.parseInt(possibleExit);
-            System.out.println("\n" + server.viewReverseAuction(itemID));
+            System.out.println("\n" + server.getReversedBasicAuctionsDisplay(itemID));
         } catch (NumberFormatException e) {
             System.out.println("The formatting of the data was incorrect.");
             viewReverseAuction(server, scanner);

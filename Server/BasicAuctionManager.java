@@ -4,24 +4,24 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NormalAuctionManager {
+public class BasicAuctionManager {
 
     private final static Double DOESNT_EXIST = 0.0;
     private final static Double AUCTION_CLOSED = -4.0;
 
     private static int lastAuctionID = 0;
-    private static Hashtable<Integer, LinkedList<NormalAuction>> availableAuctions = new Hashtable<>();
+    private static Hashtable<Integer, LinkedList<BasicAuction>> availableAuctions = new Hashtable<>();
     static {
-        availableAuctions.put(1, new LinkedList<NormalAuction>());
-        availableAuctions.put(2, new LinkedList<NormalAuction>());
-        availableAuctions.put(3, new LinkedList<NormalAuction>());
-        availableAuctions.put(4, new LinkedList<NormalAuction>());
-        availableAuctions.put(5, new LinkedList<NormalAuction>());
+        availableAuctions.put(1, new LinkedList<BasicAuction>());
+        availableAuctions.put(2, new LinkedList<BasicAuction>());
+        availableAuctions.put(3, new LinkedList<BasicAuction>());
+        availableAuctions.put(4, new LinkedList<BasicAuction>());
+        availableAuctions.put(5, new LinkedList<BasicAuction>());
     }
 
     // ACTIONS
     public static Double bid(int auctionID, User user, Double biddingAmount) {
-        NormalAuction theAuction = getAuction(auctionID);
+        BasicAuction theAuction = getAuction(auctionID);
         if (theAuction == null)
             return DOESNT_EXIST;
         if (theAuction.isAuctionClosed())
@@ -29,42 +29,35 @@ public class NormalAuctionManager {
         return theAuction.bid(user, biddingAmount);
     }
 
-    public static String checkAuctionStatusSeller(User user, int auctionID) {
-        boolean valid = UserManager.validateUser(user, 'S');
-        if (!valid) {
-            return "You don't have access to this functionality";
-        }
-        NormalAuction theAuction = getAuction(auctionID);
-        if (!theAuction.getSeller().equals(user)) {
+    public static String getStatusSeller(User user, int auctionID) {
+        BasicAuction theAuction = getAuction(auctionID);
+        if (theAuction == null) {
+            return "The given auction ID does not exist";
+        } else if (!theAuction.getSeller().equals(user)) {
             return "You don't have access to this auction's status.";
         }
         return theAuction.generateSellerStatus();
     }
 
-    public static String checkAuctionStatusBuyer(User user, int auctionID) {
-        boolean valid = UserManager.validateUser(user, 'B');
-        if (!valid) {
-            return "You don't have access to this functionality";
-        }
-        NormalAuction theAuction = getAuction(auctionID);
-        return theAuction.generateBuyerStatus(user);
+    public static String getStatusBuyer(User user, int auctionID) {
+        return getAuction(auctionID).generateBuyerStatus(user);
     }
 
-    public static String viewReverseAuction(int itemID) {
-        NormalAuction[] listAuctions = getLowestbids(itemID, 3);
+    public static String getReversedBasicAuctionsDisplay(int itemID) {
+        BasicAuction[] listAuctions = getLowestbids(itemID, 3);
         String reverseAuctions = "Three auctions with the currently lowest bids for the item #" + itemID + ":\n\n";
         for (int i = 0; i < listAuctions.length; i++) {
             if (listAuctions[i] != null) {
-                reverseAuctions = reverseAuctions.concat(listAuctions[i].generateNormalAuctionSummary());
+                reverseAuctions = reverseAuctions.concat(listAuctions[i].generateDisplay());
             }
         }
         return reverseAuctions;
     }
 
-    private static NormalAuction[] getLowestbids(int itemID, int limitBids) {
-        NormalAuction[] listAuctions = new NormalAuction[limitBids];
+    private static BasicAuction[] getLowestbids(int itemID, int limitBids) {
+        BasicAuction[] listAuctions = new BasicAuction[limitBids];
         for (int i : availableAuctions.keySet()) {
-            for (NormalAuction temp : availableAuctions.get(i)) {
+            for (BasicAuction temp : availableAuctions.get(i)) {
                 if (temp.getItem().getItemId() == itemID) {
                     addLowerBid(listAuctions, temp);
                 }
@@ -74,7 +67,7 @@ public class NormalAuctionManager {
         return listAuctions;
     }
 
-    private static void sortAuctionsDecreasing(NormalAuction[] listAuctions) {
+    private static void sortAuctionsDecreasing(BasicAuction[] listAuctions) {
         for (int i = 0; i < listAuctions.length - 1; i++) {
             int tempHighest = i;
             for (int j = i; j < listAuctions.length; j++) {
@@ -84,13 +77,13 @@ public class NormalAuctionManager {
                     }
                 }
             }
-            NormalAuction temp = listAuctions[i];
+            BasicAuction temp = listAuctions[i];
             listAuctions[i] = listAuctions[tempHighest];
             listAuctions[tempHighest] = temp;
         }
     }
 
-    private static void addLowerBid(NormalAuction[] listAuctions, NormalAuction temp) {
+    private static void addLowerBid(BasicAuction[] listAuctions, BasicAuction temp) {
         for (int i = 0; i < listAuctions.length; i++) {
             if (listAuctions[i] == null) {
                 listAuctions[i] = temp;
@@ -109,8 +102,8 @@ public class NormalAuctionManager {
         }
     }
 
-    public static String getAvailableItems() {
-        return ITEMS.getItemsText();
+    public static String getDisplayAvailableItems() {
+        return ITEMS.getDisplayAvailable();
     }
 
     private static boolean itemReferenceExists(int itemID) {
@@ -122,7 +115,7 @@ public class NormalAuctionManager {
             return -1;
         }
         int auctionID = generateAuctionID();
-        NormalAuction newAuction = new NormalAuction(auctionID, item, reservePrice, item.getSellingPrice());
+        BasicAuction newAuction = new BasicAuction(auctionID, item, reservePrice, item.getSellingPrice());
         availableAuctions.get(hashFunction(newAuction.getAuctionID())).add(newAuction);
         return newAuction.getAuctionID();
     }
@@ -131,12 +124,12 @@ public class NormalAuctionManager {
         return auctionID % 5 + 1;
     }
 
-    public static String getAuctionsDisplay(int itemID) {
+    public static String getBasicAuctionsDisplay(int itemID) {
         String displayString = "";
         for (int i = 1; i < 6; i++) {
-            for (NormalAuction temp : availableAuctions.get(i)) {
+            for (BasicAuction temp : availableAuctions.get(i)) {
                 if ((temp.getItem().getItemId() == itemID || itemID < 0) && !temp.isAuctionClosed()) {
-                    displayString = displayString.concat(temp.generateNormalAuctionSummary());
+                    displayString = displayString.concat(temp.generateDisplay());
                 }
             }
         }
@@ -153,7 +146,7 @@ public class NormalAuctionManager {
         }
         String displayString = "The following items have open auctions:\n";
         for (int i = 1; i < availableAuctions.size() + 1; i++) {
-            for (NormalAuction temp : availableAuctions.get(i)) {
+            for (BasicAuction temp : availableAuctions.get(i)) {
                 int itemID = temp.getItem().getItemId();
                 if (!alreadyListed.contains(itemID) && !temp.isAuctionClosed()) {
                     displayString = displayString
@@ -168,7 +161,7 @@ public class NormalAuctionManager {
     public static HashMap<Integer, AuctionItem> getSpec(User user, int itemID) {
         HashMap<Integer, AuctionItem> map = new HashMap<>();
         for (int i = 1; i < 6; i++) {
-            for (NormalAuction temp : availableAuctions.get(i).stream().filter(t -> (t.getItem().getItemId() == itemID))
+            for (BasicAuction temp : availableAuctions.get(i).stream().filter(t -> (t.getItem().getItemId() == itemID))
                     .collect(Collectors.toList())) {
                 map.put(temp.getAuctionID(), temp.getItem());
             }
@@ -181,9 +174,9 @@ public class NormalAuctionManager {
         return lastAuctionID;
     }
 
-    private static NormalAuction getAuction(int auctionID) {
-        LinkedList<NormalAuction> hashEntry = availableAuctions.get(hashFunction(auctionID));
-        for (NormalAuction temp : hashEntry) {
+    private static BasicAuction getAuction(int auctionID) {
+        LinkedList<BasicAuction> hashEntry = availableAuctions.get(hashFunction(auctionID));
+        for (BasicAuction temp : hashEntry) {
             if (temp.getAuctionID() == auctionID)
                 return temp;
         }
@@ -191,11 +184,7 @@ public class NormalAuctionManager {
     }
 
     public static String closeAuction(User user, int auctionID) {
-        boolean valid = UserManager.validateUser(user, 'S');
-        if (!valid) {
-            return "You don't have access to this functionality";
-        }
-        NormalAuction theAuction = getAuction(auctionID);
+        BasicAuction theAuction = getAuction(auctionID);
         if (theAuction == null)
             return "There are no auctions with the specified ID.";
         if (theAuction.getSeller().equals(user))
@@ -203,8 +192,8 @@ public class NormalAuctionManager {
         return "You don't have access to this editting this auction.";
     }
 
-    public static String closeAuctionConfirmation(int auctionID, boolean isApproved) {
-        NormalAuction theAuction = getAuction(auctionID);
+    public static String closeBasicAuctionAndApproveWinner(int auctionID, boolean isApproved) {
+        BasicAuction theAuction = getAuction(auctionID);
         if (isApproved) {
             theAuction.setWinnerApproved(true);
             return theAuction.generateWinnerConfirmation();

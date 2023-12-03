@@ -1,3 +1,4 @@
+
 import java.rmi.RemoteException;
 import java.util.Scanner;
 
@@ -20,7 +21,7 @@ public class DoubleAuctionHandlerBuyer {
     }
 
     private static void viewDoubleAuctions(iBuyer server, User userInfo) throws RemoteException {
-        System.out.println("\n" + server.viewDoubleAuctions(userInfo));
+        System.out.println("\n" + server.getDoubleAuctionsDisplay(userInfo));
     }
 
     private static void checkDoubleAuction(iBuyer server, Scanner scanner, User userInfo) throws RemoteException {
@@ -34,7 +35,7 @@ public class DoubleAuctionHandlerBuyer {
                 return;
             }
             int auctionID = Integer.parseInt(possibleExit);
-            System.out.println("\n" + server.checkDoubleAuctionResolution(auctionID, userInfo));
+            System.out.println("\n" + server.getDoubleAuctionResolution(auctionID, userInfo));
         } catch (NumberFormatException e) {
             System.out.println("The formatting of the auction's ID is incorrect.");
             checkDoubleAuction(server, scanner, userInfo);

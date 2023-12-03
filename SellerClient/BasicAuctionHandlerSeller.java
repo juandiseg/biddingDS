@@ -48,7 +48,8 @@ public class BasicAuctionHandlerSeller {
                 addBasicAuction(server, scanner, userInfo);
                 return;
             }
-            int auctionID = server.createAuction(sellerUsername, itemID, title, description, condition, reservePrice,
+            int auctionID = server.createBasicAuction(sellerUsername, itemID, title, description, condition,
+                    reservePrice,
                     sellingPrice);
             if (auctionID == -1) {
                 System.out.println("There aren't any registered items for the reference item ID. Use command ITEMS");
@@ -76,7 +77,7 @@ public class BasicAuctionHandlerSeller {
                 return;
             }
             int auctionID = Integer.parseInt(possibleExit);
-            System.out.println("\n" + server.checkAuctionStatus(userInfo, auctionID) + "\n");
+            System.out.println("\n" + server.getBasicAuctionStatus(userInfo, auctionID) + "\n");
         } catch (Exception e) {
             System.out.println("The formatting of the data was incorrect.");
             checkBasicAuction(server, scanner, userInfo);
@@ -95,7 +96,7 @@ public class BasicAuctionHandlerSeller {
                 return;
             }
             int auctionID = Integer.parseInt(possibleExit);
-            String answer = server.closeAuction(userInfo, auctionID);
+            String answer = server.closeBasicAuction(userInfo, auctionID);
             System.out.println(answer + "\n");
             if (answer.contains("Do you want to grant the item to this bidder?")) {
                 closeBasicAuctionConfirmation(server, scanner, auctionID);
@@ -112,10 +113,10 @@ public class BasicAuctionHandlerSeller {
         try {
             System.out.print("Types YES or NOT: ");
             String possibleExit = scanner.nextLine();
-            if (possibleExit.toUpperCase().equals("YES")) {
-                System.out.println(server.closeAuctionConfirmation(auctionID, true));
+            if (possibleExit.toUpperCase().equals("YES") || possibleExit.toUpperCase().equals("Y")) {
+                System.out.println(server.closeBasicAuctionAndApproveWinner(auctionID, true));
             } else {
-                System.out.println(server.closeAuctionConfirmation(auctionID, false));
+                System.out.println(server.closeBasicAuctionAndApproveWinner(auctionID, false));
             }
 
         } catch (Exception e) {

@@ -43,7 +43,7 @@ public class UtilityHandlerSeller {
 
     private static void displaySellableItems(iSeller server) {
         try {
-            System.out.println("\n" + server.getItemsReferenceID());
+            System.out.println("\n" + server.getDisplayAvailableItems());
         } catch (RemoteException e) {
             System.out.println("Something went wrong while communicating with the server.");
         }

@@ -5,8 +5,8 @@ import java.rmi.registry.Registry;
 
 public class Server {
 
-    private static iBuyer buyersHandler = new buyerHandler();
-    private static iSeller sellersHandler = new sellerHandler();
+    private static iBuyer buyersHandler = new buyerProxy();
+    private static iSeller sellersHandler = new sellerProxy();
 
     public Server() {
         super();

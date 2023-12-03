@@ -1,7 +1,6 @@
-
 import java.util.ArrayList;
 
-public class NormalAuction {
+public class BasicAuction {
 
     final static Double WINNING_BID = -1.0;
     final static Double ALREADY_WINNING_BID = -2.0;
@@ -14,7 +13,7 @@ public class NormalAuction {
     private ArrayList<Bids> listBids;
     private boolean auctionClosed = false;
 
-    public NormalAuction(int auctionID, AuctionItem item, Double reservePrice, Double sellingPrice) {
+    public BasicAuction(int auctionID, AuctionItem item, Double reservePrice, Double sellingPrice) {
         this.auctionID = auctionID;
         this.item = item;
         this.reservePrice = reservePrice;
@@ -68,7 +67,7 @@ public class NormalAuction {
 
     // SUMMARY
 
-    public String generateNormalAuctionSummary() {
+    public String generateDisplay() {
         String buildStr = "----------------------------------------------------\n";
         buildStr = buildStr.concat("Auction ID #" + getAuctionID() + ": \n");
         buildStr = buildStr.concat("- - - - - - - - - - - - - - - \n");
@@ -216,7 +215,7 @@ public class NormalAuction {
         return listBids.get(listBids.size() - 1).getBidAmount();
     }
 
-    public String getWinningBidUsername() {
+    private String getWinningBidUsername() {
         if (listBids.isEmpty())
             return "";
         return listBids.get(listBids.size() - 1).getUser().getUsername();
@@ -228,14 +227,6 @@ public class NormalAuction {
         return listBids.get(listBids.size() - 1);
     }
 
-    public Double getReservePrice() {
-        return reservePrice;
-    }
-
-    public Double getSellingPrice() {
-        return sellingPrice;
-    }
-
     public Double getLowestPrice() {
         Double winningBid = getWinningBidAmount();
         if (winningBid == -1) {
@@ -245,7 +236,7 @@ public class NormalAuction {
         }
     }
 
-    public int getNumberOfBids() {
+    private int getNumberOfBids() {
         return listBids.size();
     }
 
