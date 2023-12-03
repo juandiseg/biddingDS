@@ -83,8 +83,8 @@ public class sellerProxy implements iSeller {
     }
 
     @Override
-    public String getDoubleAuctionResolution(int auctionID, User user) throws RemoteException {
-        return DoubleAuctionManager.getResolutionSeller(auctionID, user);
+    public String getDoubleAuctionResolution(User user, int auctionID) throws RemoteException {
+        return DoubleAuctionManager.getResolutionSeller(user, auctionID);
     }
 
     @Override

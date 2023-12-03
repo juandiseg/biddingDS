@@ -64,8 +64,8 @@ public class buyerProxy implements iBuyer {
     }
 
     @Override
-    public String getDoubleAuctionResolution(int auctionID, User user) throws RemoteException {
-        return DoubleAuctionManager.getResolutionBuyer(auctionID, user);
+    public String getDoubleAuctionResolution(User user, int auctionID) throws RemoteException {
+        return DoubleAuctionManager.getResolutionBuyer(user, auctionID);
     }
 
 }

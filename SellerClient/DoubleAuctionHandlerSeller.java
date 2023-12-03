@@ -35,7 +35,7 @@ public class DoubleAuctionHandlerSeller {
                 return;
             }
             int auctionID = Integer.parseInt(possibleExit);
-            System.out.println("\n" + server.getDoubleAuctionResolution(auctionID, userInfo));
+            System.out.println("\n" + server.getDoubleAuctionResolution(userInfo, auctionID));
         } catch (NumberFormatException e) {
             System.out.println("The formatting of the auction's ID is incorrect.");
             checkDoubleAuction(server, scanner, userInfo);

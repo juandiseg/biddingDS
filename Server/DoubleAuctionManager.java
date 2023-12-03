@@ -89,14 +89,14 @@ public class DoubleAuctionManager {
         return lastAuctionID;
     }
 
-    public static String getResolutionBuyer(int auctionID, User user) {
+    public static String getResolutionBuyer(User user, int auctionID) {
         if (!doesDoubleAuctionExists(auctionID)) {
             return "The given double auction ID does not exist.";
         }
         return getDoubleAuction(auctionID).getResolutionBuyer(user);
     }
 
-    public static String getResolutionSeller(int auctionID, User user) {
+    public static String getResolutionSeller(User user, int auctionID) {
         if (!doesDoubleAuctionExists(auctionID)) {
             return "The given double auction ID does not exist.";
         }

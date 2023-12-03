@@ -23,5 +23,5 @@ public interface iUser extends Remote {
 
     public String getDoubleAuctionsDisplay(User user) throws RemoteException;
 
-    public String getDoubleAuctionResolution(int auctionID, User user) throws RemoteException;
+    public String getDoubleAuctionResolution(User user, int auctionID) throws RemoteException;
 }
