@@ -1,31 +1,8 @@
-
-import java.rmi.server.UnicastRemoteObject;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-
 public class Server {
 
-    private static iBuyer buyersHandler = new buyerProxy();
-    private static iSeller sellersHandler = new sellerProxy();
-
-    public Server() {
-        super();
-    }
-
-    public static void main(String[] args) {
-        try {
-            iBuyer buyerStub = (iBuyer) UnicastRemoteObject.exportObject(buyersHandler, 0);
-            Registry buyerRegistry = LocateRegistry.getRegistry();
-            buyerRegistry.bind("buyer_server", buyerStub);
-
-            iSeller sellerStub = (iSeller) UnicastRemoteObject.exportObject(sellersHandler, 0);
-            Registry sellerRegistry = LocateRegistry.getRegistry();
-            sellerRegistry.bind("seller_server", sellerStub);
-
-            System.out.println("Server ready");
-        } catch (Exception e) {
-            System.err.println("Exception:");
-            e.printStackTrace();
-        }
+    public static void main(String[] args) throws Exception {
+        ServerReplication server = new ServerReplication();
+        server.bindRegistry();
+        server.start();
     }
 }

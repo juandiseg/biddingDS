@@ -1,6 +1,6 @@
-rm */*.class
+rm ./*/*.class
 
-javac ./Server/*.java
+javac -cp "./Server/jgroups-3.6.20.Final.jar":. ./Server/*.java
 
 cp ./Server/iSeller.class ./SellerClient
 cp ./Server/iUser.class ./SellerClient
