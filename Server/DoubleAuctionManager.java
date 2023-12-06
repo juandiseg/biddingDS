@@ -5,12 +5,12 @@ import java.util.stream.Collectors;
 public class DoubleAuctionManager {
 
     private static int lastAuctionID = 0;
-    private static Hashtable<Integer, LinkedList<DoubleAuction>> availableDoubleAuctions = new Hashtable<>();
+    private static Hashtable<Integer, LinkedList<DoubleAuction>> availableAuctions = new Hashtable<>();
     static {
-        availableDoubleAuctions.put(1, new LinkedList<DoubleAuction>());
-        availableDoubleAuctions.put(2, new LinkedList<DoubleAuction>());
-        availableDoubleAuctions.put(3, new LinkedList<DoubleAuction>());
-        availableDoubleAuctions.put(4, new LinkedList<DoubleAuction>());
+        availableAuctions.put(1, new LinkedList<DoubleAuction>());
+        availableAuctions.put(2, new LinkedList<DoubleAuction>());
+        availableAuctions.put(3, new LinkedList<DoubleAuction>());
+        availableAuctions.put(4, new LinkedList<DoubleAuction>());
     }
 
     public static int createDoubleAuction(int itemID, int limitSellers, int limitBids) {
@@ -19,14 +19,14 @@ public class DoubleAuctionManager {
         }
         lastAuctionID++;
         DoubleAuction temp = new DoubleAuction(lastAuctionID, lastAuctionID, limitSellers, limitBids);
-        availableDoubleAuctions.get(hashFunction(lastAuctionID)).add(temp);
+        availableAuctions.get(hashFunction(lastAuctionID)).add(temp);
         return lastAuctionID;
     }
 
     public static String getDoubleAuctionsDisplaySellers(User user) {
         String returnStr = "";
         for (int i = 1; i < 5; i++) {
-            for (DoubleAuction temp : availableDoubleAuctions.get(i)) {
+            for (DoubleAuction temp : availableAuctions.get(i)) {
                 returnStr = returnStr.concat(temp.checkAuctionStatusSeller(user));
             }
         }
@@ -43,7 +43,7 @@ public class DoubleAuctionManager {
     public static String getDoubleAuctionsDisplayBuyers(User user) {
         String returnStr = "";
         for (int i = 1; i < 5; i++) {
-            for (DoubleAuction temp : availableDoubleAuctions.get(i)) {
+            for (DoubleAuction temp : availableAuctions.get(i)) {
                 returnStr = returnStr.concat(temp.checkDoubleAuctionBuyer(user));
             }
         }
@@ -67,13 +67,13 @@ public class DoubleAuctionManager {
     }
 
     private static DoubleAuction getDoubleAuction(int doubleAuctionID) {
-        return availableDoubleAuctions.get(hashFunction(doubleAuctionID)).stream()
-                .filter(temp -> (temp.getDoubleAuctionID() == doubleAuctionID)).collect(Collectors.toList()).get(0);
+        return availableAuctions.get(hashFunction(doubleAuctionID)).stream()
+                .filter(temp -> (temp.getID() == doubleAuctionID)).collect(Collectors.toList()).get(0);
     }
 
     public static boolean doesDoubleAuctionExists(int doubleAuctionID) {
-        return availableDoubleAuctions.get(hashFunction(doubleAuctionID)).stream()
-                .anyMatch(temp -> (temp.getDoubleAuctionID() == doubleAuctionID));
+        return availableAuctions.get(hashFunction(doubleAuctionID)).stream()
+                .anyMatch(temp -> (temp.getID() == doubleAuctionID));
     }
 
     public static boolean bid(int doubleAuctionID, User user, Double biddingAmount) {

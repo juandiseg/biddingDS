@@ -15,7 +15,7 @@ public class buyerProxy implements iBuyer {
 
     @Override
     public String getBasicAuctionsDisplay(int itemID) throws RemoteException {
-        return BasicAuctionManager.getBasicAuctionsDisplay(itemID);
+        return BasicAuctionManager.getDisplay(itemID);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class buyerProxy implements iBuyer {
 
     @Override
     public String getReversedBasicAuctionsDisplay(int itemID) throws RemoteException {
-        return BasicAuctionManager.getReversedBasicAuctionsDisplay(itemID);
+        return BasicAuctionManager.getReversedDisplay(itemID);
     }
 
     @Override

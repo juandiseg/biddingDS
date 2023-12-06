@@ -6,15 +6,15 @@ public class BasicAuction {
     final static Double ALREADY_WINNING_BID = -2.0;
     private AuctionItem item;
 
-    private final int auctionID;
+    private final int id;
     private final Double reservePrice;
     private final Double sellingPrice;
     private boolean winnerApproved = false;
     private ArrayList<Bids> listBids;
     private boolean auctionClosed = false;
 
-    public BasicAuction(int auctionID, AuctionItem item, Double reservePrice, Double sellingPrice) {
-        this.auctionID = auctionID;
+    public BasicAuction(int id, AuctionItem item, Double reservePrice, Double sellingPrice) {
+        this.id = id;
         this.item = item;
         this.reservePrice = reservePrice;
         this.sellingPrice = sellingPrice;
@@ -69,11 +69,11 @@ public class BasicAuction {
 
     public String generateDisplay() {
         String buildStr = "----------------------------------------------------\n";
-        buildStr = buildStr.concat("Auction ID #" + getAuctionID() + ": \n");
+        buildStr = buildStr.concat("Auction ID #" + getID() + ": \n");
         buildStr = buildStr.concat("- - - - - - - - - - - - - - - \n");
-        buildStr = buildStr.concat("Item\t| ID\t= " + getItem().getItemId() + "\n");
-        buildStr = buildStr.concat("\t| Title\t= " + getItem().getItemTitle() + "\n");
-        buildStr = buildStr.concat("\t| Description\t= " + getItem().getItemDescription() + "\n");
+        buildStr = buildStr.concat("Item\t| ID\t= " + getItem().getID() + "\n");
+        buildStr = buildStr.concat("\t| Title\t= " + getItem().getTitle() + "\n");
+        buildStr = buildStr.concat("\t| Description\t= " + getItem().getDescription() + "\n");
         buildStr = buildStr.concat("\t| Condition\t= " + getItem().getItemCondition() + "\n");
         Double winningBid = getWinningBidAmount();
         if (winningBid > 0) {
@@ -201,8 +201,8 @@ public class BasicAuction {
         return auctionClosed;
     }
 
-    public int getAuctionID() {
-        return auctionID;
+    public int getID() {
+        return id;
     }
 
     public AuctionItem getItem() {

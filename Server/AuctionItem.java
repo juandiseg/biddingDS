@@ -2,40 +2,40 @@
 public class AuctionItem implements java.io.Serializable {
 
     private final User seller;
-    private int itemId;
-    private String itemTitle;
-    private String itemDescription;
-    private int itemCondition;
+    private int id;
+    private String title;
+    private String description;
+    private int condition;
     private double sellingPrice;
 
-    public AuctionItem(String sellerUsername, int itemId, String itemTitle, String itemDescription, int itemCondition,
+    public AuctionItem(String sellerUsername, int id, String title, String description, int condition,
             double sellingPrice) {
         this.seller = UserManager.getUser(sellerUsername);
-        this.itemId = itemId;
-        this.itemTitle = itemTitle;
-        this.itemDescription = itemDescription;
-        if (itemCondition < 1 || itemCondition > 5) {
-            this.itemCondition = -1;
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        if (condition < 1 || condition > 5) {
+            this.condition = -1;
         } else {
-            this.itemCondition = itemCondition;
+            this.condition = condition;
         }
         this.sellingPrice = sellingPrice;
     }
 
-    public int getItemId() {
-        return itemId;
+    public int getID() {
+        return id;
     }
 
-    public String getItemTitle() {
-        return itemTitle;
+    public String getTitle() {
+        return title;
     }
 
     public double getSellingPrice() {
         return sellingPrice;
     }
 
-    public String getItemDescription() {
-        return itemDescription;
+    public String getDescription() {
+        return description;
     }
 
     public User getSeller() {
@@ -43,24 +43,24 @@ public class AuctionItem implements java.io.Serializable {
     }
 
     public String getItemCondition() {
-        if (itemCondition == 2)
+        if (condition == 2)
             return "Like new";
-        if (itemCondition == 3)
+        if (condition == 3)
             return "In good state";
-        if (itemCondition == 4)
+        if (condition == 4)
             return "Has signs of use";
-        if (itemCondition == 5)
+        if (condition == 5)
             return "Broken";
-        if (itemCondition == -1)
+        if (condition == -1)
             return "Unknown";
         return "New";
     }
 
     public void printSummary(int auctionID) {
         System.out.println("This item is being sold on the Auction #" + auctionID);
-        System.out.println("\tItem's ID : " + itemId);
-        System.out.println("\tItem's Title : " + itemTitle);
-        System.out.println("\tItem's Description : " + itemDescription);
+        System.out.println("\tItem's ID : " + id);
+        System.out.println("\tItem's Title : " + title);
+        System.out.println("\tItem's Description : " + description);
         System.out.println("\tItem's Condition : " + getItemCondition());
     }
 }

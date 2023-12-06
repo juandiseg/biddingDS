@@ -12,14 +12,14 @@ public class sellerProxy implements iSeller {
     @Override
     public int createBasicAuction(String sellerUsername, int itemID, String itemTitle, String itemDescription,
             int itemCondition, Double reservePrice, Double sellingPrice) throws RemoteException {
-        return BasicAuctionManager.addAuction(
+        return BasicAuctionManager.add(
                 new AuctionItem(sellerUsername, itemID, itemTitle, itemDescription, itemCondition, sellingPrice),
                 reservePrice);
     }
 
     @Override
     public String closeBasicAuction(User user, int auctionID) throws RemoteException {
-        return BasicAuctionManager.closeAuction(user, auctionID);
+        return BasicAuctionManager.close(user, auctionID);
     }
 
     @Override

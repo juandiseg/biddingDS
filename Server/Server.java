@@ -16,11 +16,11 @@ public class Server {
         try {
             iBuyer buyerStub = (iBuyer) UnicastRemoteObject.exportObject(buyersHandler, 0);
             Registry buyerRegistry = LocateRegistry.getRegistry();
-            buyerRegistry.rebind("buyer_server", buyerStub);
+            buyerRegistry.bind("buyer_server", buyerStub);
 
             iSeller sellerStub = (iSeller) UnicastRemoteObject.exportObject(sellersHandler, 0);
             Registry sellerRegistry = LocateRegistry.getRegistry();
-            sellerRegistry.rebind("seller_server", sellerStub);
+            sellerRegistry.bind("seller_server", sellerStub);
 
             System.out.println("Server ready");
         } catch (Exception e) {

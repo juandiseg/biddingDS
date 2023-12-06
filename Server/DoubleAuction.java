@@ -1,5 +1,5 @@
 public class DoubleAuction {
-    private final int doubleAuctionID;
+    private final int id;
     private final int itemID;
     private Bids[] listBids;
     private AuctionItem[] listItems;
@@ -8,8 +8,8 @@ public class DoubleAuction {
     private boolean auctionClosed = false;
     private boolean allItemsListed = false;
 
-    public DoubleAuction(int itemID, int doubleAuctionID, int numberSellers, int numberBids) {
-        this.doubleAuctionID = doubleAuctionID;
+    public DoubleAuction(int itemID, int id, int numberSellers, int numberBids) {
+        this.id = id;
         this.itemID = itemID;
         listItems = new AuctionItem[numberSellers];
         if (numberBids < numberSellers) {
@@ -21,10 +21,10 @@ public class DoubleAuction {
     public String checkDoubleAuctionBuyer(User user) {
         if (isLimitItemsReached()) {
             if (auctionClosed) {
-                String status = ("\nDouble Auction ID #" + getDoubleAuctionID() + " is closed and resolved.\n");
+                String status = ("\nDouble Auction ID #" + getID() + " is closed and resolved.\n");
                 return status.concat(getResolutionBuyer(user));
             } else {
-                String status = "\nDouble Auction ID #" + getDoubleAuctionID() + "\n";
+                String status = "\nDouble Auction ID #" + getID() + "\n";
                 status = status
                         .concat("Item on sale\t| " + getItemID() + " (" + ITEMS.getNameOfItem(getItemID()) + ")\n");
                 status = status
@@ -43,10 +43,10 @@ public class DoubleAuction {
 
     public String checkAuctionStatusSeller(User user) {
         if (auctionClosed) {
-            String status = "\nDouble Auction ID #" + getDoubleAuctionID() + " is closed and resolved.\n";
+            String status = "\nDouble Auction ID #" + getID() + " is closed and resolved.\n";
             return status.concat(getResolutionSeller(user));
         } else {
-            String status = "\nDouble Auction ID #" + getDoubleAuctionID() + "\n";
+            String status = "\nDouble Auction ID #" + getID() + "\n";
             status = status.concat("Listed item\t| " + getItemID() + " (" + ITEMS.getNameOfItem(getItemID()) + ")\n");
             status = status.concat("Limit sellers\t| " + getLimitItems() + " (" + getCurrentNmbrListings() + ") \n");
             status = status.concat("Limit bids\t| " + getLimitBids() + " (" + getCurrentNumberBids() + ") \n");
@@ -58,8 +58,8 @@ public class DoubleAuction {
         return allItemsListed;
     }
 
-    public int getDoubleAuctionID() {
-        return doubleAuctionID;
+    public int getID() {
+        return id;
     }
 
     public int getLimitBids() {
@@ -188,9 +188,9 @@ public class DoubleAuction {
         }
         String retStr = "Your bid MATCHED an item!\n";
         retStr = retStr.concat("Item specification:\n");
-        retStr = retStr.concat("Item\t| " + ITEMS.getNameOfItem(listItems[bidIndex].getItemId()) + "\n");
-        retStr = retStr.concat("Title\t| " + listItems[bidIndex].getItemTitle() + "\n");
-        retStr = retStr.concat("Descr.\t| " + listItems[bidIndex].getItemDescription() + "\n");
+        retStr = retStr.concat("Item\t| " + ITEMS.getNameOfItem(listItems[bidIndex].getID()) + "\n");
+        retStr = retStr.concat("Title\t| " + listItems[bidIndex].getTitle() + "\n");
+        retStr = retStr.concat("Descr.\t| " + listItems[bidIndex].getDescription() + "\n");
         retStr = retStr.concat("State\t| " + listItems[bidIndex].getItemCondition() + "\n");
         retStr = retStr.concat("The seller will SOON get in contact with you!");
         return retStr;
