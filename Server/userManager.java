@@ -1,15 +1,15 @@
 
-import java.util.HashMap;
+import org.jgroups.blocks.ReplicatedHashMap;
 
 public class UserManager {
-    private static HashMap<String, User> users = new HashMap<>();
+    private static ReplicatedHashMap<String, User> users = ServerReplication.userMap;
 
     public static User signUp(String username, String email, String password, char userType) {
         User temp = new User(username, email, password, userType);
         if (emailTaken(email) || users.get(username) != null) {
             return null;
         }
-        users.put(username, temp);
+        users._put(username, temp);
         return temp;
     }
 
@@ -31,13 +31,14 @@ public class UserManager {
     }
 
     public static User logIn(String username, String password, char type) {
-        if (UserManager.validateCredentials(username, password) == 'B')
-            return UserManager.getUser(username);
+        User temp = UserManager.getUser(username);
+        if (UserManager.validateCredentials(temp, username, password) == type) {
+            return temp;
+        }
         return null;
     }
 
-    private static char validateCredentials(String username, String password) {
-        User temp = users.get(username);
+    private static char validateCredentials(User temp, String username, String password) {
         if (temp != null && temp.getPassword().equals(password)) {
             return temp.getUserType();
         }

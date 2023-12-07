@@ -1,10 +1,10 @@
 import org.jgroups.*;
+import org.jgroups.blocks.ReplicatedHashMap;
 import org.jgroups.blocks.RpcDispatcher;
 import org.jgroups.util.Util;
 
 import java.io.*;
-import java.rmi.AccessException;
-import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -17,22 +17,32 @@ public class ServerReplication extends ReceiverAdapter {
     JChannel jChannel;
     RpcDispatcher dispatcher;
     final List<String> state;
+    public static ReplicatedHashMap<String, User> userMap;
+    public static ReplicatedHashMap<Integer, BasicAuction> availableBasicAuctions;
+    public static ReplicatedHashMap<Integer, DoubleAuction> availableDoubleAuctions;
+
     private List<String> servers = new LinkedList<>();
-    private String self;
+    private String nameSelf;
     private static iBuyer buyersHandler = new buyerProxy();
     private static iSeller sellersHandler = new sellerProxy();
+    private int numberServers = 0;
 
     public ServerReplication() throws Exception {
         jChannel = new JChannel();
-        int number = (int) (Math.random() * 100);
-        self = "Franklin" + number;
-        jChannel.name(self);
+        nameSelf = "Franklin" + ((int) (Math.random() * 100));
+        jChannel.name(nameSelf);
         jChannel.setReceiver(this);
         jChannel.connect("FranklinCluster");
-        this.state = new LinkedList<String>();
-        this.state.add("Franklin" + number);
-        this.state.add("This is kinda cool");
+        userMap = new ReplicatedHashMap<String, User>(jChannel);
+        userMap.start(5000);
+        availableDoubleAuctions = new ReplicatedHashMap<Integer, DoubleAuction>(jChannel);
+        availableDoubleAuctions.start(5000);
+        availableBasicAuctions = new ReplicatedHashMap<Integer, BasicAuction>(jChannel);
+        availableBasicAuctions.start(5000);
 
+        this.state = new LinkedList<String>();
+        this.state.add("Franklin" + nameSelf);
+        this.state.add("This is kinda cool");
         try {
             jChannel.getState(null, 1000);
         } catch (StateTransferException e) {
@@ -51,7 +61,7 @@ public class ServerReplication extends ReceiverAdapter {
     @Override
     public void receive(Message msg) {
         String message = (String) msg.getObject();
-        if (!msg.getSrc().toString().equals(self)) {
+        if (!msg.getSrc().toString().equals(nameSelf)) {
             System.out.println("Received a message from: " + msg.getSrc() + "\nmessage: " + message);
         }
     }
@@ -60,12 +70,17 @@ public class ServerReplication extends ReceiverAdapter {
     public void viewAccepted(View new_view) {
         // This tells when a server disconnects
         System.out.println("view: " + new_view);
+        if (numberServers < new_view.getMembers().size() || numberServers == 0) {
+            bindRegistry();
+            numberServers = new_view.getMembers().size();
+        }
     }
 
     @Override
     public void setState(InputStream input) throws Exception {
         List<String> list;
         list = (List<String>) Util.objectFromStream(new DataInputStream(input));
+
         synchronized (state) {
             state.clear();
             state.addAll(list);
@@ -96,20 +111,28 @@ public class ServerReplication extends ReceiverAdapter {
         }
     }
 
-    private void bindRegistry() throws AccessException, RemoteException, AlreadyBoundException {
-        if (jChannel.getView().getMembers().size() <= 1) {
-            forceBindRegistry();
+    private void bindRegistry() {
+        try {
+            iBuyer buyerStub = (iBuyer) UnicastRemoteObject.exportObject(buyersHandler, 0);
+            Registry buyerRegistry = LocateRegistry.getRegistry();
+            iSeller sellerStub = (iSeller) UnicastRemoteObject.exportObject(sellersHandler, 0);
+            Registry sellerRegistry = LocateRegistry.getRegistry();
+            try {
+                buyerRegistry.unbind("buyer_server");
+                sellerRegistry.unbind("seller_server");
+            } catch (NotBoundException e) {
+                System.out.println("NOT BOUND EXCEPTION");
+            } finally {
+                try {
+                    buyerRegistry.bind("buyer_server", buyerStub);
+                    sellerRegistry.bind("seller_server", sellerStub);
+                } catch (Exception e) {
+                    System.out.println("Not needed");
+                }
+            }
+
+        } catch (RemoteException b) {
+            System.out.println(b);
         }
-        System.out.println("Server ready");
-    }
-
-    private void forceBindRegistry() {
-        iBuyer buyerStub = (iBuyer) UnicastRemoteObject.exportObject(buyersHandler, 0);
-        Registry buyerRegistry = LocateRegistry.getRegistry();
-        buyerRegistry.bind("buyer_server", buyerStub);
-
-        iSeller sellerStub = (iSeller) UnicastRemoteObject.exportObject(sellersHandler, 0);
-        Registry sellerRegistry = LocateRegistry.getRegistry();
-        sellerRegistry.bind("seller_server", sellerStub);
     }
 }

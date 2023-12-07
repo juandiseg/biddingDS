@@ -1,17 +1,9 @@
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.stream.Collectors;
+import org.jgroups.blocks.ReplicatedHashMap;
 
 public class DoubleAuctionManager {
 
     private static int lastAuctionID = 0;
-    private static Hashtable<Integer, LinkedList<DoubleAuction>> availableAuctions = new Hashtable<>();
-    static {
-        availableAuctions.put(1, new LinkedList<DoubleAuction>());
-        availableAuctions.put(2, new LinkedList<DoubleAuction>());
-        availableAuctions.put(3, new LinkedList<DoubleAuction>());
-        availableAuctions.put(4, new LinkedList<DoubleAuction>());
-    }
+    private static ReplicatedHashMap<Integer, DoubleAuction> availableAuctions = ServerReplication.availableDoubleAuctions;
 
     public static int createDoubleAuction(int itemID, int limitSellers, int limitBids) {
         if (itemReferenceExists(itemID)) {
@@ -19,16 +11,14 @@ public class DoubleAuctionManager {
         }
         lastAuctionID++;
         DoubleAuction temp = new DoubleAuction(lastAuctionID, lastAuctionID, limitSellers, limitBids);
-        availableAuctions.get(hashFunction(lastAuctionID)).add(temp);
+        availableAuctions._put(lastAuctionID, temp);
         return lastAuctionID;
     }
 
     public static String getDoubleAuctionsDisplaySellers(User user) {
         String returnStr = "";
-        for (int i = 1; i < 5; i++) {
-            for (DoubleAuction temp : availableAuctions.get(i)) {
-                returnStr = returnStr.concat(temp.checkAuctionStatusSeller(user));
-            }
+        for (DoubleAuction temp : availableAuctions.values()) {
+            returnStr = returnStr.concat(temp.checkAuctionStatusSeller(user));
         }
         if (returnStr.equals("")) {
             return "There are not any available double auctions.";
@@ -42,10 +32,8 @@ public class DoubleAuctionManager {
 
     public static String getDoubleAuctionsDisplayBuyers(User user) {
         String returnStr = "";
-        for (int i = 1; i < 5; i++) {
-            for (DoubleAuction temp : availableAuctions.get(i)) {
-                returnStr = returnStr.concat(temp.checkDoubleAuctionBuyer(user));
-            }
+        for (DoubleAuction temp : availableAuctions.values()) {
+            returnStr = returnStr.concat(temp.checkDoubleAuctionBuyer(user));
         }
         if (returnStr.equals("")) {
             return "There are not any available double auctions.";
@@ -67,13 +55,11 @@ public class DoubleAuctionManager {
     }
 
     private static DoubleAuction getDoubleAuction(int doubleAuctionID) {
-        return availableAuctions.get(hashFunction(doubleAuctionID)).stream()
-                .filter(temp -> (temp.getID() == doubleAuctionID)).collect(Collectors.toList()).get(0);
+        return availableAuctions.get(doubleAuctionID);
     }
 
     public static boolean doesDoubleAuctionExists(int doubleAuctionID) {
-        return availableAuctions.get(hashFunction(doubleAuctionID)).stream()
-                .anyMatch(temp -> (temp.getID() == doubleAuctionID));
+        return availableAuctions.get(doubleAuctionID) != null;
     }
 
     public static boolean bid(int doubleAuctionID, User user, Double biddingAmount) {

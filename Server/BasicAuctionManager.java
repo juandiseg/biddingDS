@@ -1,22 +1,16 @@
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.jgroups.blocks.ReplicatedHashMap;
 
 public class BasicAuctionManager {
 
     private final static Double DOESNT_EXIST = 0.0;
     private final static Double AUCTION_CLOSED = -4.0;
     private static int lastAuctionID = 0;
-    private static Hashtable<Integer, LinkedList<BasicAuction>> availableAuctions = new Hashtable<>();
-    static {
-        availableAuctions.put(1, new LinkedList<BasicAuction>());
-        availableAuctions.put(2, new LinkedList<BasicAuction>());
-        availableAuctions.put(3, new LinkedList<BasicAuction>());
-        availableAuctions.put(4, new LinkedList<BasicAuction>());
-        availableAuctions.put(5, new LinkedList<BasicAuction>());
-    }
+    private static ReplicatedHashMap<Integer, BasicAuction> availableAuctions = ServerReplication.availableBasicAuctions;
 
     // ACTIONS
     public static Double bid(int auctionID, User user, Double biddingAmount) {
@@ -55,11 +49,9 @@ public class BasicAuctionManager {
 
     private static BasicAuction[] getLowestbids(int itemID, int limitBids) {
         BasicAuction[] listAuctions = new BasicAuction[limitBids];
-        for (int i : availableAuctions.keySet()) {
-            for (BasicAuction temp : availableAuctions.get(i)) {
-                if (temp.getItem().getID() == itemID) {
-                    addLowerBid(listAuctions, temp);
-                }
+        for (BasicAuction temp : availableAuctions.values()) {
+            if (temp.getItem().getID() == itemID) {
+                addLowerBid(listAuctions, temp);
             }
         }
         sortAuctionsDecreasing(listAuctions);
@@ -110,26 +102,20 @@ public class BasicAuctionManager {
     }
 
     public static int add(AuctionItem item, double reservePrice) {
-        if (itemReferenceExists(item.getID())) {
+        if (!itemReferenceExists(item.getID())) {
             return -1;
         }
         int auctionID = generateID();
         BasicAuction newAuction = new BasicAuction(auctionID, item, reservePrice, item.getSellingPrice());
-        availableAuctions.get(hashFunction(newAuction.getID())).add(newAuction);
+        availableAuctions._put(auctionID, newAuction);
         return newAuction.getID();
-    }
-
-    private static int hashFunction(int auctionID) {
-        return auctionID % 5 + 1;
     }
 
     public static String getDisplay(int itemID) {
         String displayString = "";
-        for (int i = 1; i < 6; i++) {
-            for (BasicAuction temp : availableAuctions.get(i)) {
-                if ((temp.getItem().getID() == itemID || itemID < 0) && !temp.isAuctionClosed()) {
-                    displayString = displayString.concat(temp.generateDisplay());
-                }
+        for (BasicAuction temp : availableAuctions.values()) {
+            if ((temp.getItem().getID() == itemID || itemID < 0) && !temp.isAuctionClosed()) {
+                displayString = displayString.concat(temp.generateDisplay());
             }
         }
         if (displayString.equals("")) {
@@ -144,14 +130,12 @@ public class BasicAuctionManager {
             return "There are no open auctions.";
         }
         String displayString = "The following items have open auctions:\n";
-        for (int i = 1; i < availableAuctions.size() + 1; i++) {
-            for (BasicAuction temp : availableAuctions.get(i)) {
-                int itemID = temp.getItem().getID();
-                if (!alreadyListed.contains(itemID) && !temp.isAuctionClosed()) {
-                    displayString = displayString
-                            .concat("\tItem #" + itemID + " : " + ITEMS.getItems().get(itemID) + "\n");
-                    alreadyListed.add(itemID);
-                }
+        for (BasicAuction temp : availableAuctions.values()) {
+            int itemID = temp.getItem().getID();
+            if (!alreadyListed.contains(itemID) && !temp.isAuctionClosed()) {
+                displayString = displayString
+                        .concat("\tItem #" + itemID + " : " + ITEMS.getItems().get(itemID) + "\n");
+                alreadyListed.add(itemID);
             }
         }
         return displayString;
@@ -160,7 +144,7 @@ public class BasicAuctionManager {
     public static HashMap<Integer, AuctionItem> getSpec(User user, int itemID) {
         HashMap<Integer, AuctionItem> map = new HashMap<>();
         for (int i = 1; i < 6; i++) {
-            for (BasicAuction temp : availableAuctions.get(i).stream().filter(t -> (t.getItem().getID() == itemID))
+            for (BasicAuction temp : availableAuctions.values().stream().filter(t -> (t.getItem().getID() == itemID))
                     .collect(Collectors.toList())) {
                 map.put(temp.getID(), temp.getItem());
             }
@@ -174,8 +158,7 @@ public class BasicAuctionManager {
     }
 
     private static BasicAuction get(int auctionID) {
-        LinkedList<BasicAuction> hashEntry = availableAuctions.get(hashFunction(auctionID));
-        for (BasicAuction temp : hashEntry) {
+        for (BasicAuction temp : availableAuctions.values()) {
             if (temp.getID() == auctionID)
                 return temp;
         }
