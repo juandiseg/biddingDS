@@ -66,9 +66,9 @@ public class UtilityHandlerSeller {
                 for (Integer temp : result.keySet()) {
                     result.get(temp).printSummary(temp);
                 }
-            } else
+            } else {
                 System.out.println("The ID for the given item doesn't exist.");
-
+            }
         } catch (Exception e) {
             System.out.println("The formatting of the data was incorrect.");
             BasicAuctionHandlerSeller.checkBasicAuction(server, scanner, userInfo);

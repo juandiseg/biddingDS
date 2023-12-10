@@ -39,7 +39,9 @@ public class sellerProxy implements iSeller {
 
     @Override
     public User logIn(String username, String password) throws RemoteException {
-        return UserManager.logIn(username, password, 'S');
+        User temp = UserManager.logIn(username, password, 'S');
+        System.out.println(temp);
+        return temp;
     }
 
     @Override

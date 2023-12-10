@@ -1,7 +1,0 @@
-JGroups:
-    - Building Block. Intended to save the application programmer from having to write tevious and recurring code.
-        - ReplicatedHashMaps
-        - Replicated___
-        - Replicated___
-    - JGroups (start remote procedure call)
-        - RpcDispatcher.

@@ -1,5 +1,5 @@
 
-public class Bids {
+public class Bids implements java.io.Serializable {
     private User user;
     private Double bidAmount;
 

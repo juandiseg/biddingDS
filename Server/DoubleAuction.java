@@ -1,4 +1,4 @@
-public class DoubleAuction {
+public class DoubleAuction implements java.io.Serializable {
     private final int id;
     private final int itemID;
     private Bids[] listBids;
