@@ -8,9 +8,9 @@ public class AuctionItem implements java.io.Serializable {
     private int condition;
     private double sellingPrice;
 
-    public AuctionItem(String sellerUsername, int id, String title, String description, int condition,
+    public AuctionItem(User user, int id, String title, String description, int condition,
             double sellingPrice) {
-        this.seller = UserManager.getUser(sellerUsername);
+        this.seller = user;
         this.id = id;
         this.title = title;
         this.description = description;

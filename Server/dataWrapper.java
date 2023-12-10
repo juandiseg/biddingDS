@@ -2,9 +2,9 @@ import java.util.HashMap;
 
 public class dataWrapper implements java.io.Serializable {
 
-    private final HashMap<String, User> userMap = new HashMap<String, User>();
-    private final HashMap<Integer, BasicAuction> basicAuctionsMap = new HashMap<Integer, BasicAuction>();
     private final HashMap<Integer, DoubleAuction> doubleAuctionsMap = new HashMap<Integer, DoubleAuction>();
+    private final HashMap<Integer, BasicAuction> basicAuctionsMap = new HashMap<Integer, BasicAuction>();
+    private final HashMap<String, User> userMap = new HashMap<String, User>();
 
     public dataWrapper() {
     }

@@ -1,10 +1,14 @@
 public class DoubleAuction implements java.io.Serializable {
+
     private final int id;
-    private final int itemID;
-    private Bids[] listBids;
-    private AuctionItem[] listItems;
     private int lastBidIndex = -1;
+
+    private final int itemID;
     private int lastItemIndex = -1;
+
+    private AuctionItem[] listItems;
+    private Bids[] listBids;
+
     private boolean auctionClosed = false;
     private boolean allItemsListed = false;
 
@@ -17,6 +21,77 @@ public class DoubleAuction implements java.io.Serializable {
         }
         listBids = new Bids[numberBids];
     }
+
+    // ACTIONS
+
+    public void closeAuction() {
+        sortBids();
+        sortItems();
+        auctionClosed = true;
+    }
+
+    public void join(AuctionItem auctionItem) {
+        lastItemIndex++;
+        listItems[lastItemIndex] = auctionItem;
+        if (lastItemIndex == listItems.length - 1) {
+            allItemsListed = true;
+        }
+    }
+
+    public boolean addBid(User user, Double bidAmount) {
+        if (auctionClosed || hasUserAlreadyBidded(user)) {
+            return false;
+        } else {
+            lastBidIndex++;
+            listBids[lastBidIndex] = new Bids(user, bidAmount);
+            if (lastBidIndex == listBids.length - 1) {
+                closeAuction();
+            }
+            return true;
+        }
+    }
+
+    // DISPLAY
+
+    public String getResolutionBuyer(User user) {
+        if (!auctionClosed) {
+            return "The double auction is not yet closed.";
+        }
+        int bidIndex = searchBuyerIndex(user);
+        if (bidIndex == -1) {
+            return "You didn't bid on the specified double auction.";
+        } else if (bidIndex > listItems.length - 1
+                || listBids[bidIndex].getBidAmount() < listItems[bidIndex].getSellingPrice()) {
+            return "Your bid didn't match an item.";
+        }
+        String retStr = "Your bid MATCHED an item!\n";
+        retStr = retStr.concat("Item specification:\n");
+        retStr = retStr.concat("Item\t| " + ITEMS.getNameOfItem(listItems[bidIndex].getID()) + "\n");
+        retStr = retStr.concat("Title\t| " + listItems[bidIndex].getTitle() + "\n");
+        retStr = retStr.concat("Descr.\t| " + listItems[bidIndex].getDescription() + "\n");
+        retStr = retStr.concat("State\t| " + listItems[bidIndex].getItemCondition() + "\n");
+        retStr = retStr.concat("The seller will SOON get in contact with you!");
+        return retStr;
+    }
+
+    public String getResolutionSeller(User user) {
+        if (!auctionClosed) {
+            return "The double auction is not yet closed.";
+        }
+        int itemIndex = searchSellerIndex(user);
+        if (itemIndex == -1) {
+            return "You didn't list an item on the specified double auction.";
+        } else if (listBids[itemIndex].getBidAmount() < listItems[itemIndex].getSellingPrice()) {
+            return "Your listing did NOT MATCH a bid that reached your selling price.";
+        }
+        String retStr = "Your listing MATCHED a bid!\n";
+        retStr = retStr.concat("The matching bid was for " + listBids[itemIndex].getBidAmount() + " EUR.\n");
+        retStr = retStr.concat("You can contact the seller (" + listBids[itemIndex].getUser().getUsername() + ") at: "
+                + listBids[itemIndex].getUser().getEmail() + "\n");
+        return retStr;
+    }
+
+    // CHECKS
 
     public String checkDoubleAuctionBuyer(User user) {
         if (isLimitItemsReached()) {
@@ -58,6 +133,34 @@ public class DoubleAuction implements java.io.Serializable {
         return allItemsListed;
     }
 
+    private boolean isLimitItemsReached() {
+        return getLimitItems() == getCurrentNmbrListings();
+    }
+
+    private boolean hasUserAlreadyBidded(User user) {
+        for (int i = 0; i < listBids.length; i++) {
+            if (listBids[i] != null) {
+                if (listBids[i].getUser().equals(user)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // GETTERS
+
+    public double getUsersBid(User user) {
+        for (int i = 0; i < listBids.length; i++) {
+            if (listBids[i] != null) {
+                if (listBids[i].getUser().equals(user)) {
+                    return listBids[i].getBidAmount();
+                }
+            }
+        }
+        return -1;
+    }
+
     public int getID() {
         return id;
     }
@@ -74,10 +177,6 @@ public class DoubleAuction implements java.io.Serializable {
             }
         }
         return countEmpty;
-    }
-
-    private boolean isLimitItemsReached() {
-        return getLimitItems() == getCurrentNmbrListings();
     }
 
     public int getCurrentNumberBids() {
@@ -97,6 +196,8 @@ public class DoubleAuction implements java.io.Serializable {
     public int getItemID() {
         return this.itemID;
     }
+
+    // RESOLUTION - sorting and searching
 
     private void sortBids() {
         for (int i = 0; i < listBids.length - 1; i++) {
@@ -124,93 +225,6 @@ public class DoubleAuction implements java.io.Serializable {
             listItems[i] = listItems[tempLowest];
             listItems[tempLowest] = temp;
         }
-    }
-
-    public void closeAuction() {
-        sortBids();
-        sortItems();
-        auctionClosed = true;
-    }
-
-    public void join(AuctionItem auctionItem) {
-        lastItemIndex++;
-        listItems[lastItemIndex] = auctionItem;
-        if (lastItemIndex == listItems.length - 1) {
-            allItemsListed = true;
-        }
-    }
-
-    public boolean addBid(User user, Double bidAmount) {
-        if (auctionClosed || userHasAlreadyBidded(user)) {
-            return false;
-        } else {
-            lastBidIndex++;
-            listBids[lastBidIndex] = new Bids(user, bidAmount);
-            if (lastBidIndex == listBids.length - 1) {
-                closeAuction();
-            }
-            return true;
-        }
-    }
-
-    private boolean userHasAlreadyBidded(User user) {
-        for (int i = 0; i < listBids.length; i++) {
-            if (listBids[i] != null) {
-                if (listBids[i].getUser().equals(user)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public double getUsersBid(User user) {
-        for (int i = 0; i < listBids.length; i++) {
-            if (listBids[i] != null) {
-                if (listBids[i].getUser().equals(user)) {
-                    return listBids[i].getBidAmount();
-                }
-            }
-        }
-        return -1;
-    }
-
-    public String getResolutionBuyer(User user) {
-        if (!auctionClosed) {
-            return "The double auction is not yet closed.";
-        }
-        int bidIndex = searchBuyerIndex(user);
-        if (bidIndex == -1) {
-            return "You didn't bid on the specified double auction.";
-        } else if (bidIndex > listItems.length - 1
-                || listBids[bidIndex].getBidAmount() < listItems[bidIndex].getSellingPrice()) {
-            return "Your bid didn't match an item.";
-        }
-        String retStr = "Your bid MATCHED an item!\n";
-        retStr = retStr.concat("Item specification:\n");
-        retStr = retStr.concat("Item\t| " + ITEMS.getNameOfItem(listItems[bidIndex].getID()) + "\n");
-        retStr = retStr.concat("Title\t| " + listItems[bidIndex].getTitle() + "\n");
-        retStr = retStr.concat("Descr.\t| " + listItems[bidIndex].getDescription() + "\n");
-        retStr = retStr.concat("State\t| " + listItems[bidIndex].getItemCondition() + "\n");
-        retStr = retStr.concat("The seller will SOON get in contact with you!");
-        return retStr;
-    }
-
-    public String getResolutionSeller(User user) {
-        if (!auctionClosed) {
-            return "The double auction is not yet closed.";
-        }
-        int itemIndex = searchSellerIndex(user);
-        if (itemIndex == -1) {
-            return "You didn't list an item on the specified double auction.";
-        } else if (listBids[itemIndex].getBidAmount() < listItems[itemIndex].getSellingPrice()) {
-            return "Your listing did NOT MATCH a bid that reached your selling price.";
-        }
-        String retStr = "Your listing MATCHED a bid!\n";
-        retStr = retStr.concat("The matching bid was for " + listBids[itemIndex].getBidAmount() + " EUR.\n");
-        retStr = retStr.concat("You can contact the seller (" + listBids[itemIndex].getUser().getUsername() + ") at: "
-                + listBids[itemIndex].getUser().getEmail() + "\n");
-        return retStr;
     }
 
     private int searchBuyerIndex(User user) {

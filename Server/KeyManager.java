@@ -1,4 +1,3 @@
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,14 +22,14 @@ public class KeyManager {
         }
     }
 
-    public static byte[] signFile(byte[] dataToSign) throws Exception {
+    public byte[] signFile(byte[] dataToSign) throws Exception {
         signature.initSign(privateKey);
         signature.update(dataToSign, 0, dataToSign.length);
         byte[] realSig = signature.sign();
         return realSig;
     }
 
-    public static Certificate exportCertificate() throws Exception {
+    public Certificate exportCertificate() throws Exception {
         KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
         trustStore.load(null);
 

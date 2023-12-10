@@ -1,4 +1,3 @@
-
 import java.rmi.RemoteException;
 import java.util.HashMap;
 
@@ -7,17 +6,20 @@ public interface iSeller extends iUser {
 
     // CREATING & JOINING
 
-    public int createBasicAuction(String sellerUsername, int itemID, String itemTitle, String itemDescription,
+    public int createBasicAuction(String sellerUsername, int itemID, String itemTitle,
+            String itemDescription,
             int itemCondition, Double reservePrice, Double sellingPrice) throws RemoteException;
 
-    public int createDoubleAuction(int itemID, int limitSellers, int limitBids) throws RemoteException;
+    public int createDoubleAuction(int itemID, int limitSellers, int limitBids)
+            throws RemoteException;
 
     public void joinDoubleAuction(int doubleAuctionID, AuctionItem newItem) throws RemoteException;
 
     // CLOSE
     public String closeBasicAuction(User user, int auctionID) throws RemoteException;
 
-    public String closeBasicAuctionAndApproveWinner(int auctionID, boolean isApproved) throws RemoteException;
+    public String closeBasicAuctionAndApproveWinner(int auctionID, boolean isApproved)
+            throws RemoteException;
 
     // GET DISPLAY
     public String getDisplayAvailableItems() throws RemoteException;

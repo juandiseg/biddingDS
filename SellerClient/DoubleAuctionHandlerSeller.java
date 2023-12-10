@@ -96,7 +96,7 @@ public class DoubleAuctionHandlerSeller {
                 }
 
                 server.joinDoubleAuction(auctionID,
-                        new AuctionItem(userInfo.getUsername(), itemID, title, description, condition, sellingPrice));
+                        new AuctionItem(userInfo, itemID, title, description, condition, sellingPrice));
                 return "You have successfully joined the double auction.";
             }
         } catch (Exception e) {

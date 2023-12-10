@@ -12,6 +12,17 @@ public class User implements java.io.Serializable {
         this.userType = userType;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof User) {
+            User temp = (User) obj;
+            return temp.username.equals(this.username) && temp.email.equals(this.email)
+                    && temp.password.equals(this.password)
+                    && temp.userType == temp.userType;
+        }
+        return false;
+    }
+
     public String getUsername() {
         return this.username;
     }
@@ -26,17 +37,6 @@ public class User implements java.io.Serializable {
 
     public char getUserType() {
         return this.userType;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof User) {
-            User temp = (User) obj;
-            return temp.username.equals(this.username) && temp.email.equals(this.email)
-                    && temp.password.equals(this.password)
-                    && temp.userType == temp.userType;
-        }
-        return false;
     }
 
 }

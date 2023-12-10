@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,34 +8,114 @@ public class BasicAuctionManager {
 
     private final static Double DOESNT_EXIST = 0.0;
     private final static Double AUCTION_CLOSED = -4.0;
-    private static int lastAuctionID = 0;
-    private static HashMap<Integer, BasicAuction> availableAuctions = ServerReplication.getBasicAuctionState();
-    private static HashMap<Integer, BasicAuction> unsynchronized = new HashMap<Integer, BasicAuction>();
+    private HashMap<Integer, BasicAuction> availableAuctions = ServerReplication.getBasicAuctionState();
+    private ArrayList<MethodCaller> RPCallsToMake = new ArrayList<>();
+    private final String className = "BasicAuctionManager";
+    private int lastAuctionID = 0;
 
-    public static synchronized HashMap<Integer, BasicAuction> getUnsyncronizedAuctions() {
-        return BasicAuctionManager.unsynchronized;
-    }
+    // ACTIONS + aux methods
 
-    public static synchronized void cleanUnsynchronizedAuctions() {
-        BasicAuctionManager.unsynchronized.clear();
-    }
-
-    // ACTIONS
-    public static Double bid(int auctionID, User user, Double biddingAmount) {
-        BasicAuction theAuction = get(auctionID);
+    public Double bid(boolean makeCall, int auctionID, User user, Double biddingAmount) {
+        if (makeCall) {
+            Object[] args = { false, auctionID, user, biddingAmount };
+            RPCallsToMake.add(new MethodCaller(className, "bid", args));
+        }
+        BasicAuction theAuction = availableAuctions.get(auctionID);
         if (theAuction == null) {
             return DOESNT_EXIST;
         } else if (theAuction.isAuctionClosed()) {
             return AUCTION_CLOSED;
         } else {
             Double result = theAuction.bid(user, biddingAmount);
-            unsynchronized.put(auctionID, theAuction);
             return result;
         }
     }
 
-    public static String getStatusSeller(User user, int auctionID) {
-        BasicAuction theAuction = get(auctionID);
+    public int add(boolean makeCall, AuctionItem item, double reservePrice) {
+        if (makeCall) {
+            Object[] args = { false, item, reservePrice };
+            RPCallsToMake.add(new MethodCaller(className, "add", args));
+        }
+        if (!itemReferenceExists(item.getID())) {
+            return -1;
+        }
+        int auctionID = generateID();
+        BasicAuction newAuction = new BasicAuction(auctionID, item, reservePrice, item.getSellingPrice());
+        availableAuctions.put(auctionID, newAuction);
+        return newAuction.getID();
+    }
+
+    private boolean itemReferenceExists(int itemID) {
+        return ITEMS.getItems().get(itemID) != null;
+    }
+
+    private int generateID() {
+        while (lastAuctionID <= availableAuctions.size()) {
+            lastAuctionID++;
+        }
+        return lastAuctionID;
+    }
+
+    public HashMap<Integer, AuctionItem> getSpec(User user, int itemID) {
+        HashMap<Integer, AuctionItem> map = new HashMap<>();
+        for (int i = 1; i < 6; i++) {
+            for (BasicAuction temp : availableAuctions.values().stream().filter(t -> (t.getItem().getID() == itemID))
+                    .collect(Collectors.toList())) {
+                map.put(temp.getID(), temp.getItem());
+            }
+        }
+        return map;
+    }
+
+    public String close(boolean makeCall, User user, int auctionID) {
+        if (makeCall) {
+            Object[] args = { false, user, auctionID };
+            RPCallsToMake.add(new MethodCaller(className, "close", args));
+        }
+        BasicAuction theAuction = availableAuctions.get(auctionID);
+        if (theAuction == null) {
+            return "There are no auctions with the specified ID.";
+        } else if (theAuction.getSeller().equals(user)) {
+            String result = theAuction.closeAuction();
+            return result;
+        } else {
+            return "You don't have access to this editting this auction.";
+        }
+    }
+
+    public String closeAndApproveWinner(boolean makeCall, int auctionID, boolean isApproved) {
+        if (makeCall) {
+            Object[] args = { false, auctionID, isApproved };
+            RPCallsToMake.add(new MethodCaller(className, "closeAndApproveWinner", args));
+        }
+        BasicAuction theAuction = availableAuctions.get(auctionID);
+        if (isApproved) {
+            theAuction.setWinnerApproved(true);
+            String result = theAuction.generateWinnerConfirmation();
+            return result;
+        } else {
+            theAuction.setWinnerApproved(false);
+            return "Auction is CLOSED. There were no winners.";
+        }
+    }
+
+    // DISPLAY + aux methods
+
+    public String getDisplay(int itemID) {
+        String displayString = "";
+        for (BasicAuction temp : availableAuctions.values()) {
+            if ((temp.getItem().getID() == itemID || itemID < 0) && !temp.isAuctionClosed()) {
+                displayString = displayString.concat(temp.generateDisplay());
+            }
+        }
+        if (displayString.equals("")) {
+            return "There are no open auctions for the specified item";
+        }
+        return displayString;
+    }
+
+    public String getStatusSeller(User user, int auctionID) {
+        BasicAuction theAuction = availableAuctions.get(auctionID);
         if (theAuction == null) {
             return "The given auction ID does not exist";
         } else if (!theAuction.getSeller().equals(user)) {
@@ -44,11 +125,11 @@ public class BasicAuctionManager {
         }
     }
 
-    public static String getStatusBuyer(User user, int auctionID) {
-        return get(auctionID).generateBuyerStatus(user);
+    public String getStatusBuyer(User user, int auctionID) {
+        return availableAuctions.get(auctionID).generateBuyerStatus(user);
     }
 
-    public static String getReversedDisplay(int itemID) {
+    public String getReversedDisplay(int itemID) {
         BasicAuction[] listAuctions = getLowestbids(itemID, 5);
         String reverseAuctions = "Five auctions with the currently lowest bids for the item #" + itemID + ":\n\n";
         for (int i = 0; i < listAuctions.length; i++) {
@@ -59,7 +140,28 @@ public class BasicAuctionManager {
         return reverseAuctions;
     }
 
-    private static BasicAuction[] getLowestbids(int itemID, int limitBids) {
+    public String getDisplayAvailableItems() {
+        return ITEMS.getDisplayAvailable();
+    }
+
+    public String getItemsDisplay() {
+        List<Integer> alreadyListed = new LinkedList<Integer>();
+        if (availableAuctions.isEmpty()) {
+            return "There are no open auctions.";
+        }
+        String displayString = "The following items have open auctions:\n";
+        for (BasicAuction temp : availableAuctions.values()) {
+            int itemID = temp.getItem().getID();
+            if (!alreadyListed.contains(itemID) && !temp.isAuctionClosed()) {
+                displayString = displayString
+                        .concat("\tItem #" + itemID + " : " + ITEMS.getItems().get(itemID) + "\n");
+                alreadyListed.add(itemID);
+            }
+        }
+        return displayString;
+    }
+
+    private BasicAuction[] getLowestbids(int itemID, int limitBids) {
         BasicAuction[] listAuctions = new BasicAuction[limitBids];
         for (BasicAuction temp : availableAuctions.values()) {
             if (temp.getItem().getID() == itemID) {
@@ -70,7 +172,7 @@ public class BasicAuctionManager {
         return listAuctions;
     }
 
-    private static void sortAuctionsDecreasing(BasicAuction[] listAuctions) {
+    private void sortAuctionsDecreasing(BasicAuction[] listAuctions) {
         for (int i = 0; i < listAuctions.length - 1; i++) {
             int tempHighest = i;
             for (int j = i; j < listAuctions.length; j++) {
@@ -86,7 +188,7 @@ public class BasicAuctionManager {
         }
     }
 
-    private static void addLowerBid(BasicAuction[] listAuctions, BasicAuction temp) {
+    private void addLowerBid(BasicAuction[] listAuctions, BasicAuction temp) {
         for (int i = 0; i < listAuctions.length; i++) {
             if (listAuctions[i] == null) {
                 listAuctions[i] = temp;
@@ -105,105 +207,13 @@ public class BasicAuctionManager {
         }
     }
 
-    public static String getDisplayAvailableItems() {
-        return ITEMS.getDisplayAvailable();
+    // REMOTE PROCEDURE CALLS
+    public ArrayList<MethodCaller> getRPCallsToMake() {
+        return RPCallsToMake;
     }
 
-    private static boolean itemReferenceExists(int itemID) {
-        return ITEMS.getItems().get(itemID) != null;
+    public void emptyRPCallsToMake() {
+        RPCallsToMake.clear();
     }
 
-    public static int add(AuctionItem item, double reservePrice) {
-        if (!itemReferenceExists(item.getID())) {
-            return -1;
-        }
-        int auctionID = generateID();
-        BasicAuction newAuction = new BasicAuction(auctionID, item, reservePrice, item.getSellingPrice());
-        availableAuctions.put(auctionID, newAuction);
-        unsynchronized.put(auctionID, newAuction);
-        return newAuction.getID();
-    }
-
-    public static String getDisplay(int itemID) {
-        String displayString = "";
-        for (BasicAuction temp : availableAuctions.values()) {
-            if ((temp.getItem().getID() == itemID || itemID < 0) && !temp.isAuctionClosed()) {
-                displayString = displayString.concat(temp.generateDisplay());
-            }
-        }
-        if (displayString.equals("")) {
-            return "There are no open auctions for the specified item";
-        }
-        return displayString;
-    }
-
-    public static String getItemsDisplay() {
-        List<Integer> alreadyListed = new LinkedList<Integer>();
-        if (availableAuctions.isEmpty()) {
-            return "There are no open auctions.";
-        }
-        String displayString = "The following items have open auctions:\n";
-        for (BasicAuction temp : availableAuctions.values()) {
-            int itemID = temp.getItem().getID();
-            if (!alreadyListed.contains(itemID) && !temp.isAuctionClosed()) {
-                displayString = displayString
-                        .concat("\tItem #" + itemID + " : " + ITEMS.getItems().get(itemID) + "\n");
-                alreadyListed.add(itemID);
-            }
-        }
-        return displayString;
-    }
-
-    public static HashMap<Integer, AuctionItem> getSpec(User user, int itemID) {
-        HashMap<Integer, AuctionItem> map = new HashMap<>();
-        for (int i = 1; i < 6; i++) {
-            for (BasicAuction temp : availableAuctions.values().stream().filter(t -> (t.getItem().getID() == itemID))
-                    .collect(Collectors.toList())) {
-                map.put(temp.getID(), temp.getItem());
-            }
-        }
-        return map;
-    }
-
-    private static int generateID() {
-        while (lastAuctionID <= availableAuctions.size()) {
-            lastAuctionID++;
-        }
-        return lastAuctionID;
-    }
-
-    private static BasicAuction get(int auctionID) {
-        for (BasicAuction temp : availableAuctions.values()) {
-            if (temp.getID() == auctionID)
-                return temp;
-        }
-        return null;
-    }
-
-    public static String close(User user, int auctionID) {
-        BasicAuction theAuction = get(auctionID);
-        if (theAuction == null) {
-            return "There are no auctions with the specified ID.";
-        } else if (theAuction.getSeller().equals(user)) {
-            String result = theAuction.closeAuction();
-            unsynchronized.put(auctionID, theAuction);
-            return result;
-        } else {
-            return "You don't have access to this editting this auction.";
-        }
-    }
-
-    public static String closeAndApproveWinner(int auctionID, boolean isApproved) {
-        BasicAuction theAuction = get(auctionID);
-        if (isApproved) {
-            theAuction.setWinnerApproved(true);
-            String result = theAuction.generateWinnerConfirmation();
-            unsynchronized.put(auctionID, theAuction);
-            return result;
-        } else {
-            theAuction.setWinnerApproved(false);
-            unsynchronized.put(auctionID, theAuction);
-            return "Auction is CLOSED. There were no winners.";
-        }
-    }
 }
