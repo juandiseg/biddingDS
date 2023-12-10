@@ -41,7 +41,7 @@ public class UtilityHandlerBuyer {
     }
 
     private static byte[] signDocument(iBuyer server) throws Exception {
-        File dummyFile = new File("keyCertification\\dummyFile.txt");
+        File dummyFile = new File("keyCertification/dummyFile.txt");
         byte[] fileContent = Files.readAllBytes(dummyFile.toPath());
         return server.signDocument(fileContent);
     }
@@ -51,7 +51,7 @@ public class UtilityHandlerBuyer {
         PublicKey pubKey = theCert.getPublicKey();
         byte[] sigToVerify = signedDoc;
         // tamperSignature(sigToVerify);
-        File dummyFile = new File("keyCertification\\dummyFile.txt");
+        File dummyFile = new File("keyCertification/dummyFile.txt");
         byte[] fileContent = Files.readAllBytes(dummyFile.toPath());
         Signature sig = Signature.getInstance("SHA256WithRSA");
         sig.initVerify(pubKey);
@@ -81,6 +81,7 @@ public class UtilityHandlerBuyer {
         System.out.println("BID BASIC AUCTION\t| Allows bidding on a basic auction.");
         System.out.println("BID DOUBLE AUCTION\t| Allows bidding on a double auctoin.");
         System.out.println("CHECK DOUBLE AUCTION\t| Displays the resolution of a double auction you've bid in.");
+        System.out.println("CHECK BASIC AUCTION\t| Checks the state of a regular auction.");
         System.out.println("SEE ITEMS\t\t| Displays items foundable on open auctions.");
         System.out.println("CHECK SIGNATURE\t\t| Tests whether the server's signature has been tampered.");
         System.out.println("---------------------------------------------------------------------------------------\n");

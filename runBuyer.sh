@@ -1,0 +1,2 @@
+cd ./BuyerClient/
+java BuyerClient

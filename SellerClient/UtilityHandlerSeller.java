@@ -94,7 +94,7 @@ public class UtilityHandlerSeller {
     }
 
     private static byte[] signDocument(iSeller server) throws Exception {
-        File dummyFile = new File("keyCertification\\dummyFile.txt");
+        File dummyFile = new File("keyCertification/dummyFile.txt");
         byte[] fileContent = Files.readAllBytes(dummyFile.toPath());
         return server.signDocument(fileContent);
     }
@@ -104,7 +104,7 @@ public class UtilityHandlerSeller {
         PublicKey pubKey = theCert.getPublicKey();
         byte[] sigToVerify = signedDoc;
         // tamperSignature(sigToVerify);
-        File dummyFile = new File("keyCertification\\dummyFile.txt");
+        File dummyFile = new File("keyCertification/dummyFile.txt");
         byte[] fileContent = Files.readAllBytes(dummyFile.toPath());
         Signature sig = Signature.getInstance("SHA256WithRSA");
         sig.initVerify(pubKey);
