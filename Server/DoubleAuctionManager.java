@@ -1,9 +1,9 @@
-import org.jgroups.blocks.ReplicatedHashMap;
+import java.util.HashMap;
 
 public class DoubleAuctionManager {
 
     private static int lastAuctionID = 0;
-    private static ReplicatedHashMap<Integer, DoubleAuction> availableAuctions = ServerReplication.availableDoubleAuctions;
+    private static HashMap<Integer, DoubleAuction> availableAuctions = new HashMap<Integer, DoubleAuction>();
 
     public static int createDoubleAuction(int itemID, int limitSellers, int limitBids) {
         if (itemReferenceExists(itemID)) {
@@ -11,7 +11,7 @@ public class DoubleAuctionManager {
         }
         lastAuctionID++;
         DoubleAuction temp = new DoubleAuction(lastAuctionID, lastAuctionID, limitSellers, limitBids);
-        availableAuctions._put(lastAuctionID, temp);
+        availableAuctions.put(lastAuctionID, temp);
         return lastAuctionID;
     }
 
@@ -39,10 +39,6 @@ public class DoubleAuctionManager {
             return "There are not any available double auctions.";
         }
         return returnStr;
-    }
-
-    private static int hashFunction(int auctionID) {
-        return auctionID % 4 + 1;
     }
 
     public static int getDoubleAuctionsItemID(int auctionID) {

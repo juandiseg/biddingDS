@@ -9,109 +9,99 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class ServerReplication extends ReceiverAdapter {
-    JChannel jChannel;
-    RpcDispatcher dispatcher;
-    final List<String> state;
-    public static ReplicatedHashMap<String, User> userMap;
-    public static ReplicatedHashMap<Integer, BasicAuction> availableBasicAuctions;
-    public static ReplicatedHashMap<Integer, DoubleAuction> availableDoubleAuctions;
 
-    private List<String> servers = new LinkedList<>();
-    private String nameSelf;
+    private JChannel channel;
+
+    private final String nameSelf = "F" + ((int) (Math.random() * 100));
+    public static ReplicatedHashMap<Integer, BasicAuction> availableBasicAuctions;
+    private final static HashMap<String, User> userState = new HashMap<String, User>();
+
     private static iBuyer buyersHandler = new buyerProxy();
     private static iSeller sellersHandler = new sellerProxy();
     private int numberServers = 0;
 
+    public static HashMap<String, User> getUserState() {
+        return ServerReplication.userState;
+    }
+
     public ServerReplication() throws Exception {
-        jChannel = new JChannel();
-        nameSelf = "Franklin" + ((int) (Math.random() * 100));
-        jChannel.name(nameSelf);
-        jChannel.setReceiver(this);
-        jChannel.connect("FranklinCluster");
-        userMap = new ReplicatedHashMap<String, User>(jChannel);
-        userMap.start(5000);
-        availableDoubleAuctions = new ReplicatedHashMap<Integer, DoubleAuction>(jChannel);
-        availableDoubleAuctions.start(5000);
-        availableBasicAuctions = new ReplicatedHashMap<Integer, BasicAuction>(jChannel);
-        availableBasicAuctions.start(5000);
+        channel = new JChannel();
+        channel.setDiscardOwnMessages(true);
+        channel.setReceiver(this);
+        channel.connect("FranklinCluster");
+        channel.getState(null, 10000);
 
-        this.state = new LinkedList<String>();
-        this.state.add("Franklin" + nameSelf);
-        this.state.add("This is kinda cool");
-        try {
-            jChannel.getState(null, 1000);
-        } catch (StateTransferException e) {
-            System.err.println(e.getCause());
-            System.err.println(e);
-        }
-
-        View view = jChannel.getView();
-
-        for (Address address : view.getMembers()) {
-            System.out.println("Device is connected: " + address);
-        }
-
+        eventLoop();
+        channel.close();
     }
 
     @Override
     public void receive(Message msg) {
-        String message = (String) msg.getObject();
-        if (!msg.getSrc().toString().equals(nameSelf)) {
-            System.out.println("Received a message from: " + msg.getSrc() + "\nmessage: " + message);
+        // Receives new User entries and adds them to theuser's HashMap.
+        User temp = (User) msg.getObject();
+        System.out.println(temp);
+        synchronized (userState) {
+            userState.put(temp.getUsername(), temp);
         }
     }
 
     @Override
     public void viewAccepted(View new_view) {
-        // This tells when a server disconnects
-        System.out.println("view: " + new_view);
-        if (numberServers < new_view.getMembers().size() || numberServers == 0) {
+        // This tells when a server connects / disconnects
+        System.out.println("** view: " + new_view);
+        if (numberServers < new_view.getMembers().size() || numberServers == 0) { // If server disconnects, rebind stub.
             bindRegistry();
             numberServers = new_view.getMembers().size();
         }
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
     public void setState(InputStream input) throws Exception {
-        List<String> list;
-        list = (List<String>) Util.objectFromStream(new DataInputStream(input));
-
-        synchronized (state) {
-            state.clear();
-            state.addAll(list);
+        HashMap<String, User> map = (HashMap<String, User>) Util.objectFromStream(new DataInputStream(input));
+        synchronized (userState) {
+            userState.clear();
+            userState.putAll(map);
         }
-        System.out.println("Updated State");
-        for (String str : list) {
-            System.out.println(str);
-        }
+        System.out.println("received userState (" + map.size() + " messages in chat history):");
+        map.values().forEach(System.out::println);
     }
 
     @Override
     public void getState(OutputStream output) throws Exception {
-        synchronized (state) {
-            Util.objectToStream(state, new DataOutputStream(output));
+        synchronized (userState) {
+            Util.objectToStream(userState, new DataOutputStream(output));
         }
     }
 
-    public void start() {
+    private void eventLoop() {
         while (true) {
             try {
-                TimeUnit.MILLISECONDS.sleep(3000);
-                Message message = new Message(null, null, "Hello World");
-                jChannel.send(message);
-                System.out.println(state);
+                Thread.sleep(1000);
+                LinkedList<User> unsync = UserManager.getUnsyncronizedUsers();
+                if (!unsync.isEmpty()) {
+                    for (User temp : unsync) {
+                        Message mess = new Message(null, null, temp);
+                        channel.send(mess);
+                    }
+                    UserManager.cleanUnsynchronizedUsers();
+                    for (User temp : userState.values()) {
+                        System.out.print(temp.getUsername() + ", ");
+                    }
+                    System.out.println(".");
+                }
             } catch (Exception e) {
-                System.err.println(e.getMessage());
+                System.out.println(e);
             }
         }
     }
 
     private void bindRegistry() {
+        // Catched exceptions are not printed because these are expected to occur at
+        // some point or another for the method to execute successfully.
         try {
             iBuyer buyerStub = (iBuyer) UnicastRemoteObject.exportObject(buyersHandler, 0);
             Registry buyerRegistry = LocateRegistry.getRegistry();
@@ -121,18 +111,15 @@ public class ServerReplication extends ReceiverAdapter {
                 buyerRegistry.unbind("buyer_server");
                 sellerRegistry.unbind("seller_server");
             } catch (NotBoundException e) {
-                System.out.println("NOT BOUND EXCEPTION");
             } finally {
                 try {
                     buyerRegistry.bind("buyer_server", buyerStub);
                     sellerRegistry.bind("seller_server", sellerStub);
                 } catch (Exception e) {
-                    System.out.println("Not needed");
                 }
             }
 
         } catch (RemoteException b) {
-            System.out.println(b);
         }
     }
 }

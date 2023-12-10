@@ -1,15 +1,24 @@
 
-import org.jgroups.blocks.ReplicatedHashMap;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 public class UserManager {
-    private static ReplicatedHashMap<String, User> users = ServerReplication.userMap;
+
+    private static final HashMap<String, User> users = ServerReplication.getUserState();
+    private static final LinkedList<User> unsynchronized = new LinkedList<User>();
 
     public static User signUp(String username, String email, String password, char userType) {
         User temp = new User(username, email, password, userType);
         if (emailTaken(email) || users.get(username) != null) {
             return null;
         }
-        users._put(username, temp);
+        users.put(username, temp);
+        unsynchronized.add(temp);
+        return temp;
+    }
+
+    public static LinkedList<User> getSystemUsers() {
+        LinkedList<User> temp = new LinkedList<>(users.values());
         return temp;
     }
 
@@ -28,6 +37,28 @@ public class UserManager {
 
     public static boolean doesUsernameExist(String username) {
         return users.get(username) != null;
+    }
+
+    public static synchronized LinkedList<User> getUnsyncronizedUsers() {
+        return UserManager.unsynchronized;
+    }
+
+    public static synchronized void cleanUnsynchronizedUsers() {
+        if (!UserManager.unsynchronized.isEmpty()) {
+            for (int i = 0; i < UserManager.unsynchronized.size(); i++) {
+                UserManager.unsynchronized.remove(0);
+            }
+        }
+    }
+
+    public synchronized static void importUnsyncronizedUsers(LinkedList<User> temp) {
+        for (User user : temp) {
+            users.put(user.getUsername(), user);
+        }
+    }
+
+    public synchronized static void importUnsyncronizedUsers(HashMap<String, User> temp) {
+        users.putAll(temp);
     }
 
     public static User logIn(String username, String password, char type) {
