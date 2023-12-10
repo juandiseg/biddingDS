@@ -10,15 +10,9 @@ public class BasicAuctionManager {
     private static int lastAuctionID = 0;
     private static HashMap<Integer, BasicAuction> availableAuctions = ServerReplication.getBasicAuctionState();
     private static HashMap<Integer, BasicAuction> unsynchronized = new HashMap<Integer, BasicAuction>();
-    private static boolean beenUpdated = false;
 
     public static synchronized HashMap<Integer, BasicAuction> getUnsyncronizedAuctions() {
-        if (beenUpdated) {
-            beenUpdated = false;
-            return BasicAuctionManager.availableAuctions;
-        } else {
-            return BasicAuctionManager.unsynchronized;
-        }
+        return BasicAuctionManager.unsynchronized;
     }
 
     public static synchronized void cleanUnsynchronizedAuctions() {
@@ -33,8 +27,9 @@ public class BasicAuctionManager {
         } else if (theAuction.isAuctionClosed()) {
             return AUCTION_CLOSED;
         } else {
-            beenUpdated = true;
-            return theAuction.bid(user, biddingAmount);
+            Double result = theAuction.bid(user, biddingAmount);
+            unsynchronized.put(auctionID, theAuction);
+            return result;
         }
     }
 
@@ -190,8 +185,9 @@ public class BasicAuctionManager {
         if (theAuction == null) {
             return "There are no auctions with the specified ID.";
         } else if (theAuction.getSeller().equals(user)) {
-            beenUpdated = true;
-            return theAuction.closeAuction();
+            String result = theAuction.closeAuction();
+            unsynchronized.put(auctionID, theAuction);
+            return result;
         } else {
             return "You don't have access to this editting this auction.";
         }
@@ -201,11 +197,12 @@ public class BasicAuctionManager {
         BasicAuction theAuction = get(auctionID);
         if (isApproved) {
             theAuction.setWinnerApproved(true);
-            beenUpdated = true;
-            return theAuction.generateWinnerConfirmation();
+            String result = theAuction.generateWinnerConfirmation();
+            unsynchronized.put(auctionID, theAuction);
+            return result;
         } else {
             theAuction.setWinnerApproved(false);
-            beenUpdated = true;
+            unsynchronized.put(auctionID, theAuction);
             return "Auction is CLOSED. There were no winners.";
         }
     }

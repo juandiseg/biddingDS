@@ -5,15 +5,9 @@ public class DoubleAuctionManager {
     private static int lastAuctionID = 0;
     private static HashMap<Integer, DoubleAuction> availableAuctions = ServerReplication.getDoubleAuctionState();
     private static HashMap<Integer, DoubleAuction> unsynchronized = new HashMap<Integer, DoubleAuction>();
-    private static boolean beenUpdated = false;
 
     public static synchronized HashMap<Integer, DoubleAuction> getUnsyncronizedAuctions() {
-        if (beenUpdated) {
-            beenUpdated = false;
-            return DoubleAuctionManager.availableAuctions;
-        } else {
-            return DoubleAuctionManager.unsynchronized;
-        }
+        return DoubleAuctionManager.unsynchronized;
     }
 
     public static synchronized void cleanUnsynchronizedAuctions() {
@@ -28,7 +22,6 @@ public class DoubleAuctionManager {
         DoubleAuction temp = new DoubleAuction(auctionID, auctionID, limitSellers, limitBids);
         availableAuctions.put(auctionID, temp);
         unsynchronized.put(auctionID, temp);
-        beenUpdated = true;
         return auctionID;
     }
 
@@ -72,7 +65,7 @@ public class DoubleAuctionManager {
     public static void joinDoubleAuction(int doubleAuctionID, AuctionItem newItem) {
         DoubleAuction doubleAuction = getDoubleAuction(doubleAuctionID);
         doubleAuction.join(newItem);
-        beenUpdated = true;
+        unsynchronized.put(doubleAuctionID, doubleAuction);
     }
 
     private static DoubleAuction getDoubleAuction(int doubleAuctionID) {
@@ -86,8 +79,9 @@ public class DoubleAuctionManager {
     public static boolean bid(int doubleAuctionID, User user, Double biddingAmount) {
         if (doesDoubleAuctionExists(doubleAuctionID)) {
             DoubleAuction theAuction = getDoubleAuction(doubleAuctionID);
-            beenUpdated = true;
-            return theAuction.addBid(user, biddingAmount);
+            boolean result = theAuction.addBid(user, biddingAmount);
+            unsynchronized.put(doubleAuctionID, theAuction);
+            return result;
         }
         return false;
     }

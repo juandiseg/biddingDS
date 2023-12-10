@@ -1,0 +1,2 @@
+cd ./SellerClient/
+java SellerClient

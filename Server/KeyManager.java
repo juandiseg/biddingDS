@@ -15,7 +15,7 @@ public class KeyManager {
         try {
             KeyStore keyStore = KeyStore.getInstance("JKS");
             char[] password = "biddingCoursework".toCharArray();
-            keyStore.load(new FileInputStream("keys\\sender_keystore.jks"), password);
+            keyStore.load(new FileInputStream("keys/sender_keystore.jks"), password);
             privateKey = (PrivateKey) keyStore.getKey("senderKeyPair", password);
             signature = Signature.getInstance("SHA256withRSA");
         } catch (Exception e) {
@@ -35,7 +35,7 @@ public class KeyManager {
         trustStore.load(null);
 
         BufferedInputStream bis = new BufferedInputStream(
-                new FileInputStream(new File("keys\\sender_certificate.cer")));
+                new FileInputStream(new File("keys//sender_certificate.cer")));
 
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         Certificate cert = null;
