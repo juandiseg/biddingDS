@@ -71,9 +71,6 @@ public class ServerReplication extends ReceiverAdapter {
             data.update(stateData);
         }
         System.out.println("Data Synch'ed");
-        // System.out.println("received userState (" + map.size() + " messages in chat
-        // history):");
-        // map.values().forEach(System.out::println);
     }
 
     @Override

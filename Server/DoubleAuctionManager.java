@@ -5,9 +5,15 @@ public class DoubleAuctionManager {
     private static int lastAuctionID = 0;
     private static HashMap<Integer, DoubleAuction> availableAuctions = ServerReplication.getDoubleAuctionState();
     private static HashMap<Integer, DoubleAuction> unsynchronized = new HashMap<Integer, DoubleAuction>();
+    private static boolean beenUpdated = false;
 
     public static synchronized HashMap<Integer, DoubleAuction> getUnsyncronizedAuctions() {
-        return DoubleAuctionManager.unsynchronized;
+        if (beenUpdated) {
+            beenUpdated = false;
+            return DoubleAuctionManager.availableAuctions;
+        } else {
+            return DoubleAuctionManager.unsynchronized;
+        }
     }
 
     public static synchronized void cleanUnsynchronizedAuctions() {
@@ -18,10 +24,18 @@ public class DoubleAuctionManager {
         if (itemReferenceExists(itemID)) {
             return -1;
         }
-        lastAuctionID++;
-        DoubleAuction temp = new DoubleAuction(lastAuctionID, lastAuctionID, limitSellers, limitBids);
-        availableAuctions.put(lastAuctionID, temp);
-        unsynchronized.put(lastAuctionID, temp);
+        int auctionID = generateID();
+        DoubleAuction temp = new DoubleAuction(auctionID, auctionID, limitSellers, limitBids);
+        availableAuctions.put(auctionID, temp);
+        unsynchronized.put(auctionID, temp);
+        beenUpdated = true;
+        return auctionID;
+    }
+
+    private static int generateID() {
+        while (lastAuctionID <= availableAuctions.size()) {
+            lastAuctionID++;
+        }
         return lastAuctionID;
     }
 
@@ -58,6 +72,7 @@ public class DoubleAuctionManager {
     public static void joinDoubleAuction(int doubleAuctionID, AuctionItem newItem) {
         DoubleAuction doubleAuction = getDoubleAuction(doubleAuctionID);
         doubleAuction.join(newItem);
+        beenUpdated = true;
     }
 
     private static DoubleAuction getDoubleAuction(int doubleAuctionID) {
@@ -71,14 +86,10 @@ public class DoubleAuctionManager {
     public static boolean bid(int doubleAuctionID, User user, Double biddingAmount) {
         if (doesDoubleAuctionExists(doubleAuctionID)) {
             DoubleAuction theAuction = getDoubleAuction(doubleAuctionID);
+            beenUpdated = true;
             return theAuction.addBid(user, biddingAmount);
         }
         return false;
-    }
-
-    public static int generateAuctionID() {
-        lastAuctionID++;
-        return lastAuctionID;
     }
 
     public static String getResolutionBuyer(User user, int auctionID) {

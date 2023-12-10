@@ -10,9 +10,15 @@ public class BasicAuctionManager {
     private static int lastAuctionID = 0;
     private static HashMap<Integer, BasicAuction> availableAuctions = ServerReplication.getBasicAuctionState();
     private static HashMap<Integer, BasicAuction> unsynchronized = new HashMap<Integer, BasicAuction>();
+    private static boolean beenUpdated = false;
 
     public static synchronized HashMap<Integer, BasicAuction> getUnsyncronizedAuctions() {
-        return BasicAuctionManager.unsynchronized;
+        if (beenUpdated) {
+            beenUpdated = false;
+            return BasicAuctionManager.availableAuctions;
+        } else {
+            return BasicAuctionManager.unsynchronized;
+        }
     }
 
     public static synchronized void cleanUnsynchronizedAuctions() {
@@ -22,11 +28,14 @@ public class BasicAuctionManager {
     // ACTIONS
     public static Double bid(int auctionID, User user, Double biddingAmount) {
         BasicAuction theAuction = get(auctionID);
-        if (theAuction == null)
+        if (theAuction == null) {
             return DOESNT_EXIST;
-        if (theAuction.isAuctionClosed())
+        } else if (theAuction.isAuctionClosed()) {
             return AUCTION_CLOSED;
-        return theAuction.bid(user, biddingAmount);
+        } else {
+            beenUpdated = true;
+            return theAuction.bid(user, biddingAmount);
+        }
     }
 
     public static String getStatusSeller(User user, int auctionID) {
@@ -35,8 +44,9 @@ public class BasicAuctionManager {
             return "The given auction ID does not exist";
         } else if (!theAuction.getSeller().equals(user)) {
             return "You don't have access to this auction's status.";
+        } else {
+            return theAuction.generateSellerStatus();
         }
-        return theAuction.generateSellerStatus();
     }
 
     public static String getStatusBuyer(User user, int auctionID) {
@@ -161,7 +171,9 @@ public class BasicAuctionManager {
     }
 
     private static int generateID() {
-        lastAuctionID++;
+        while (lastAuctionID <= availableAuctions.size()) {
+            lastAuctionID++;
+        }
         return lastAuctionID;
     }
 
@@ -175,20 +187,25 @@ public class BasicAuctionManager {
 
     public static String close(User user, int auctionID) {
         BasicAuction theAuction = get(auctionID);
-        if (theAuction == null)
+        if (theAuction == null) {
             return "There are no auctions with the specified ID.";
-        if (theAuction.getSeller().equals(user))
+        } else if (theAuction.getSeller().equals(user)) {
+            beenUpdated = true;
             return theAuction.closeAuction();
-        return "You don't have access to this editting this auction.";
+        } else {
+            return "You don't have access to this editting this auction.";
+        }
     }
 
     public static String closeAndApproveWinner(int auctionID, boolean isApproved) {
         BasicAuction theAuction = get(auctionID);
         if (isApproved) {
             theAuction.setWinnerApproved(true);
+            beenUpdated = true;
             return theAuction.generateWinnerConfirmation();
         } else {
             theAuction.setWinnerApproved(false);
+            beenUpdated = true;
             return "Auction is CLOSED. There were no winners.";
         }
     }
