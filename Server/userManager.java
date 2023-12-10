@@ -5,7 +5,7 @@ import java.util.LinkedList;
 public class UserManager {
 
     private static final HashMap<String, User> users = ServerReplication.getUserState();
-    private static final LinkedList<User> unsynchronized = new LinkedList<User>();
+    private static final HashMap<String, User> unsynchronized = new HashMap<String, User>();
 
     public static User signUp(String username, String email, String password, char userType) {
         User temp = new User(username, email, password, userType);
@@ -13,7 +13,7 @@ public class UserManager {
             return null;
         }
         users.put(username, temp);
-        unsynchronized.add(temp);
+        unsynchronized.put(temp.getUsername(), temp);
         return temp;
     }
 
@@ -39,16 +39,12 @@ public class UserManager {
         return users.get(username) != null;
     }
 
-    public static synchronized LinkedList<User> getUnsyncronizedUsers() {
+    public static synchronized HashMap<String, User> getUnsyncronizedUsers() {
         return UserManager.unsynchronized;
     }
 
     public static synchronized void cleanUnsynchronizedUsers() {
-        if (!UserManager.unsynchronized.isEmpty()) {
-            for (int i = 0; i < UserManager.unsynchronized.size(); i++) {
-                UserManager.unsynchronized.remove(0);
-            }
-        }
+        unsynchronized.clear();
     }
 
     public synchronized static void importUnsyncronizedUsers(LinkedList<User> temp) {

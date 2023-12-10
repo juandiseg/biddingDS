@@ -3,14 +3,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jgroups.blocks.ReplicatedHashMap;
-
 public class BasicAuctionManager {
 
     private final static Double DOESNT_EXIST = 0.0;
     private final static Double AUCTION_CLOSED = -4.0;
     private static int lastAuctionID = 0;
-    private static ReplicatedHashMap<Integer, BasicAuction> availableAuctions = ServerReplication.availableBasicAuctions;
+    private static HashMap<Integer, BasicAuction> availableAuctions = ServerReplication.getBasicAuctionState();
+    private static HashMap<Integer, BasicAuction> unsynchronized = new HashMap<Integer, BasicAuction>();
+
+    public static synchronized HashMap<Integer, BasicAuction> getUnsyncronizedAuctions() {
+        return BasicAuctionManager.unsynchronized;
+    }
+
+    public static synchronized void cleanUnsynchronizedAuctions() {
+        BasicAuctionManager.unsynchronized.clear();
+    }
 
     // ACTIONS
     public static Double bid(int auctionID, User user, Double biddingAmount) {
@@ -107,7 +114,8 @@ public class BasicAuctionManager {
         }
         int auctionID = generateID();
         BasicAuction newAuction = new BasicAuction(auctionID, item, reservePrice, item.getSellingPrice());
-        availableAuctions._put(auctionID, newAuction);
+        availableAuctions.put(auctionID, newAuction);
+        unsynchronized.put(auctionID, newAuction);
         return newAuction.getID();
     }
 

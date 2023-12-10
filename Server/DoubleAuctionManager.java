@@ -3,7 +3,16 @@ import java.util.HashMap;
 public class DoubleAuctionManager {
 
     private static int lastAuctionID = 0;
-    private static HashMap<Integer, DoubleAuction> availableAuctions = new HashMap<Integer, DoubleAuction>();
+    private static HashMap<Integer, DoubleAuction> availableAuctions = ServerReplication.getDoubleAuctionState();
+    private static HashMap<Integer, DoubleAuction> unsynchronized = new HashMap<Integer, DoubleAuction>();
+
+    public static synchronized HashMap<Integer, DoubleAuction> getUnsyncronizedAuctions() {
+        return DoubleAuctionManager.unsynchronized;
+    }
+
+    public static synchronized void cleanUnsynchronizedAuctions() {
+        DoubleAuctionManager.unsynchronized.clear();
+    }
 
     public static int createDoubleAuction(int itemID, int limitSellers, int limitBids) {
         if (itemReferenceExists(itemID)) {
@@ -12,6 +21,7 @@ public class DoubleAuctionManager {
         lastAuctionID++;
         DoubleAuction temp = new DoubleAuction(lastAuctionID, lastAuctionID, limitSellers, limitBids);
         availableAuctions.put(lastAuctionID, temp);
+        unsynchronized.put(lastAuctionID, temp);
         return lastAuctionID;
     }
 

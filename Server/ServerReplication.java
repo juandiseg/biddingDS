@@ -1,6 +1,5 @@
 import org.jgroups.*;
 import org.jgroups.blocks.ReplicatedHashMap;
-import org.jgroups.blocks.RpcDispatcher;
 import org.jgroups.util.Util;
 
 import java.io.*;
@@ -10,28 +9,35 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public class ServerReplication extends ReceiverAdapter {
 
     private JChannel channel;
 
-    private final String nameSelf = "F" + ((int) (Math.random() * 100));
     public static ReplicatedHashMap<Integer, BasicAuction> availableBasicAuctions;
-    private final static HashMap<String, User> userState = new HashMap<String, User>();
-
+    private final static dataWrapper data = new dataWrapper();
     private static iBuyer buyersHandler = new buyerProxy();
     private static iSeller sellersHandler = new sellerProxy();
     private int numberServers = 0;
+    private final String serverName = "Franklin" + ((int) (Math.random() * 98 + 1));
 
     public static HashMap<String, User> getUserState() {
-        return ServerReplication.userState;
+        return data.getUserMap();
+    }
+
+    public static HashMap<Integer, DoubleAuction> getDoubleAuctionState() {
+        return data.getDoubleAuctionMap();
+    }
+
+    public static HashMap<Integer, BasicAuction> getBasicAuctionState() {
+        return data.getBasicAuctionMap();
     }
 
     public ServerReplication() throws Exception {
         channel = new JChannel();
         channel.setDiscardOwnMessages(true);
         channel.setReceiver(this);
+        channel.name(serverName);
         channel.connect("FranklinCluster");
         channel.getState(null, 10000);
 
@@ -42,10 +48,9 @@ public class ServerReplication extends ReceiverAdapter {
     @Override
     public void receive(Message msg) {
         // Receives new User entries and adds them to theuser's HashMap.
-        User temp = (User) msg.getObject();
-        System.out.println(temp);
-        synchronized (userState) {
-            userState.put(temp.getUsername(), temp);
+        dataWrapper temp = (dataWrapper) msg.getObject();
+        synchronized (data) {
+            data.update(temp);
         }
     }
 
@@ -61,19 +66,20 @@ public class ServerReplication extends ReceiverAdapter {
 
     @SuppressWarnings("unchecked")
     public void setState(InputStream input) throws Exception {
-        HashMap<String, User> map = (HashMap<String, User>) Util.objectFromStream(new DataInputStream(input));
-        synchronized (userState) {
-            userState.clear();
-            userState.putAll(map);
+        dataWrapper stateData = (dataWrapper) Util.objectFromStream(new DataInputStream(input));
+        synchronized (data) {
+            data.update(stateData);
         }
-        System.out.println("received userState (" + map.size() + " messages in chat history):");
-        map.values().forEach(System.out::println);
+        System.out.println("Data Synch'ed");
+        // System.out.println("received userState (" + map.size() + " messages in chat
+        // history):");
+        // map.values().forEach(System.out::println);
     }
 
     @Override
     public void getState(OutputStream output) throws Exception {
-        synchronized (userState) {
-            Util.objectToStream(userState, new DataOutputStream(output));
+        synchronized (data) {
+            Util.objectToStream(data, new DataOutputStream(output));
         }
     }
 
@@ -81,17 +87,16 @@ public class ServerReplication extends ReceiverAdapter {
         while (true) {
             try {
                 Thread.sleep(1000);
-                LinkedList<User> unsync = UserManager.getUnsyncronizedUsers();
-                if (!unsync.isEmpty()) {
-                    for (User temp : unsync) {
-                        Message mess = new Message(null, null, temp);
-                        channel.send(mess);
-                    }
+                HashMap<String, User> unsyncUsers = UserManager.getUnsyncronizedUsers();
+                HashMap<Integer, BasicAuction> unsyncBasicAuctions = BasicAuctionManager.getUnsyncronizedAuctions();
+                HashMap<Integer, DoubleAuction> unsyncDoubleAuctions = DoubleAuctionManager.getUnsyncronizedAuctions();
+                if (!unsyncUsers.isEmpty() && !unsyncBasicAuctions.isEmpty() && !unsyncDoubleAuctions.isEmpty()) {
+                    dataWrapper temp = new dataWrapper(unsyncUsers, unsyncBasicAuctions, unsyncDoubleAuctions);
+                    Message mess = new Message(null, null, temp);
+                    channel.send(mess);
                     UserManager.cleanUnsynchronizedUsers();
-                    for (User temp : userState.values()) {
-                        System.out.print(temp.getUsername() + ", ");
-                    }
-                    System.out.println(".");
+                    BasicAuctionManager.cleanUnsynchronizedAuctions();
+                    DoubleAuctionManager.cleanUnsynchronizedAuctions();
                 }
             } catch (Exception e) {
                 System.out.println(e);

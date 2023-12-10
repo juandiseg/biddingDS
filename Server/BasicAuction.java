@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-public class BasicAuction {
+public class BasicAuction implements java.io.Serializable {
 
     final static Double WINNING_BID = -1.0;
     final static Double ALREADY_WINNING_BID = -2.0;

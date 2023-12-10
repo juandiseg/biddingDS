@@ -2,14 +2,24 @@ import java.util.HashMap;
 
 public class dataWrapper implements java.io.Serializable {
 
-    private static HashMap<String, User> userMap;
-    private static HashMap<Integer, BasicAuction> basicAuctionsMap;
-    private static HashMap<Integer, DoubleAuction> doubleAuctionsMap;
+    private final HashMap<String, User> userMap = new HashMap<String, User>();
+    private final HashMap<Integer, BasicAuction> basicAuctionsMap = new HashMap<Integer, BasicAuction>();
+    private final HashMap<Integer, DoubleAuction> doubleAuctionsMap = new HashMap<Integer, DoubleAuction>();
 
     public dataWrapper() {
-        userMap = new HashMap<String, User>();
-        basicAuctionsMap = new HashMap<Integer, BasicAuction>();
-        doubleAuctionsMap = new HashMap<Integer, DoubleAuction>();
+    }
+
+    public dataWrapper(HashMap<String, User> users, HashMap<Integer, BasicAuction> bAuctions,
+            HashMap<Integer, DoubleAuction> dAuctions) {
+        userMap.putAll(users);
+        basicAuctionsMap.putAll(bAuctions);
+        doubleAuctionsMap.putAll(dAuctions);
+    }
+
+    public void update(dataWrapper newData) {
+        userMap.putAll(newData.getUserMap());
+        basicAuctionsMap.putAll(newData.getBasicAuctionMap());
+        doubleAuctionsMap.putAll(newData.getDoubleAuctionMap());
     }
 
     public HashMap<String, User> getUserMap() {
