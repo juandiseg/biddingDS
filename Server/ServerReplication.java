@@ -2,7 +2,7 @@ import org.jgroups.util.Util;
 import org.jgroups.*;
 
 import java.io.*;
-import java.rmi.NotBoundException;
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -16,19 +16,19 @@ public class ServerReplication extends ReceiverAdapter {
 
     private final DoubleAuctionManager doubleManager = new DoubleAuctionManager();
     private final BasicAuctionManager basicManager = new BasicAuctionManager();
+    private final static dataWrapper data = new dataWrapper();
     private final UserManager userManager = new UserManager();
     private final KeyManager keyManager = new KeyManager();
-
-    private final static dataWrapper data = new dataWrapper();
 
     private iSeller sellersHandler;
     private iBuyer buyersHandler;
 
-    private int numberServers = 0;
+    private int ServerNumber = ((int) (Math.random() * 98 + 1));
+    private String stubBuyerName = "buyer_server" + ServerNumber;
+    private String stubSellerName = "seller_server" + ServerNumber;
 
     public ServerReplication() throws Exception {
-        String serverName = "Franklin" + ((int) (Math.random() * 98 + 1));
-
+        String serverName = "Franklin" + ServerNumber;
         channel = new JChannel();
         channel.setDiscardOwnMessages(true);
         channel.setReceiver(this);
@@ -48,6 +48,7 @@ public class ServerReplication extends ReceiverAdapter {
     private void eventLoop() {
         // If a method that must be called by other server instances is called, it is
         // registered in the Manager's RPCallsToMake List object.
+        bindStub();
         ArrayList<MethodCaller> unsyncUserManager = userManager.getRPCallsToMake();
         ArrayList<MethodCaller> unsyncDoubleManager = basicManager.getRPCallsToMake();
         ArrayList<MethodCaller> unsyncBasicManager = doubleManager.getRPCallsToMake();
@@ -83,14 +84,7 @@ public class ServerReplication extends ReceiverAdapter {
 
     @Override
     public void viewAccepted(View new_view) {
-        // This method is invoked when a new view (server) is visible.
         System.out.println("** view: " + new_view);
-        if (numberServers < new_view.getMembers().size() || numberServers == 0) {
-            // If server disconnects, attempt rebinding the stubs.
-            unbindStubs();
-            bindStubs();
-            numberServers = new_view.getMembers().size();
-        }
     }
 
     @Override
@@ -161,32 +155,21 @@ public class ServerReplication extends ReceiverAdapter {
     }
 
     // STUB REGISTRY BIDING
-
-    private boolean unbindStubs() {
+    private void bindStub() {
         // Catched exceptions are not printed because these are expected to occur at
         // some point or another for the method to execute successfully.
         try {
             Registry registry = LocateRegistry.getRegistry();
+            iSeller sellerStub = (iSeller) UnicastRemoteObject.exportObject(sellersHandler, 0);
+            iBuyer buyerStub = (iBuyer) UnicastRemoteObject.exportObject(buyersHandler, 0);
             try {
-                registry.unbind("buyer_server");
-                registry.unbind("seller_server");
-                return true;
-            } catch (NotBoundException e) {
-                return false;
+                registry.bind(stubBuyerName, buyerStub);
+                registry.bind(stubSellerName, sellerStub);
+            } catch (AlreadyBoundException e) {
+                System.out.println("STUB ALREADY BOUND: Server number is already in use.");
             }
         } catch (RemoteException b) {
-            return false;
-        }
-    }
-
-    private void bindStubs() {
-        try {
-            Registry registry = LocateRegistry.getRegistry();
-            iBuyer buyerStub = (iBuyer) UnicastRemoteObject.exportObject(buyersHandler, 0);
-            iSeller sellerStub = (iSeller) UnicastRemoteObject.exportObject(sellersHandler, 0);
-            registry.bind("buyer_server", buyerStub);
-            registry.bind("seller_server", sellerStub);
-        } catch (Exception e) {
+            System.out.println("REMOTE EXCEPTION");
         }
     }
 

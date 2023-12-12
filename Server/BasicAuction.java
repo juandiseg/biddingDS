@@ -189,6 +189,8 @@ public class BasicAuction implements java.io.Serializable {
         if (winningUsername.equals(user.getUsername())) {
             return "You were the winning bid, with a " + winningBid
                     + "EUR bid. The seller will soon get in contact with you.";
+        } else if (winningBid == -1) {
+            return "";
         } else {
             return "Someone else won the bid with a " + winningBid + "EUR bid.";
         }

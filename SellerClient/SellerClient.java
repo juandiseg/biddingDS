@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.rmi.NotBoundException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.NoSuchElementException;
@@ -10,8 +11,23 @@ public class SellerClient {
     public static void main(String[] args) throws Exception {
         String name = "seller_server";
         Registry registry = LocateRegistry.getRegistry();
-        iSeller server = (iSeller) registry.lookup(name);
-
+        boolean onlineStubFound = false;
+        iSeller server = null;
+        int i = 1;
+        while (!onlineStubFound && i <= 99) {
+            try {
+                server = (iSeller) registry.lookup(name + i);
+                try {
+                    server.exportCertificate();
+                    onlineStubFound = true;
+                } catch (Exception e) {
+                    onlineStubFound = false;
+                }
+            } catch (NotBoundException e) {
+                onlineStubFound = false;
+            }
+            i++;
+        }
         System.out.println("\nWELCOME TO MY BIDDING SYSTEM.");
         Scanner sc = new Scanner(System.in);
         userInfo = UserLogInHandlerSeller.getUserInfo(server, sc);
